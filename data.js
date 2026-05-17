@@ -1,3 +1,12 @@
+window.POOL_CONFIG = {
+  // Paste your Google Apps Script web app URL here when ready.
+  // Example: "https://script.google.com/macros/s/AKfycbx.../exec"
+  dataUrl: "",
+  refreshMinutes: 0,
+  titleFallback: "Anderson World Cup Pool",
+  subtitleFallback: "Live results, group rankings, knockout bracket, and tiebreakers."
+};
+
 window.POOL_DATA = {
   title: "Anderson World Cup Pool",
   subtitle: "Live results, group rankings, knockout bracket, and tiebreakers.",
@@ -5,7 +14,7 @@ window.POOL_DATA = {
     { label: "Entries", value: 24 },
     { label: "Current Leader", value: "Jake" },
     { label: "Prize Pool", value: "£480" },
-    { label: "Updated", value: "Live" }
+    { label: "Updated", value: "Sample data" }
   ],
   leaderboard: [
     { name: "Jake", total: 182, perfect: 4, excellent: 9, good: 12, groups: 96, knockout: 86 },
