@@ -1,4 +1,4 @@
-const WEB_APP_URL = "https://script.google.com/a/macros/colorado.edu/s/AKfycbxaAxhKUIFgEDNw5hj7BY6--u3_eBc94mEhddaHCfdktHgcSOy259OZhqUg_pxn3xhD/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyjsrpNh_BH4rBKupO2bvRVTOBZKsVHAeoPhXe7tmXlLi5NTIeeYE3ikNbSrBOw7fqj/exec";
 const PICKS_PUBLIC = true;
 const ENTRY_SHEET_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe6zAHK_tEozTJuD1ALQwpPjXFdB1jwwhkRT49sfI8YPoiqTw/viewform";
 
