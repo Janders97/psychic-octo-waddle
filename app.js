@@ -1,5 +1,5 @@
 // Paste your deployed Apps Script web app /exec URL here.
-const APPS_SCRIPT_WEB_APP_URL = "PASTE_YOUR_WEB_APP_URL_HERE";
+const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/a/macros/colorado.edu/s/AKfycbxaAxhKUIFgEDNw5hj7BY6--u3_eBc94mEhddaHCfdktHgcSOy259OZhqUg_pxn3xhD/exec";
 const REFRESH_MS = 60000;
 
 function renderLeaderboard(rows) {
