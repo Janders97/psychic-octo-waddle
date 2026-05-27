@@ -1,4 +1,4 @@
-const WEB_APP_URL = "PASTE_YOUR_DEPLOYED_WEB_APP_URL_HERE";
+const WEB_APP_URL = "https://script.google.com/a/macros/colorado.edu/s/AKfycbxaAxhKUIFgEDNw5hj7BY6--u3_eBc94mEhddaHCfdktHgcSOy259OZhqUg_pxn3xhD/exec";
 const PICKS_PUBLIC = false;
 
 const SAMPLE_DATA = {
