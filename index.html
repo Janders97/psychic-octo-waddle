@@ -1,98 +1,58 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>World Cup Pool Results</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>World Cup Pool</title>
   <link rel="stylesheet" href="styles.css" />
-  <script defer src="data.js"></script>
-  <script defer src="app.js"></script>
 </head>
 <body>
-  <header class="hero">
-    <div class="container">
-      <div class="hero__topline" id="dataStatus">Loading pool data...</div>
-      <h1 id="siteTitle">World Cup Pool Results</h1>
-      <p id="siteSubtitle" class="hero__subtitle">Live standings, group predictions, knockout bracket, and tiebreakers.</p>
-
-      <div class="hero__stats" id="heroStats"></div>
-    </div>
-  </header>
-
-  <main class="container">
-    <section class="panel">
-      <div class="panel__header">
-        <h2>Leaderboard</h2>
-        <p>Sorted by total points, then tiebreakers.</p>
+  <div class="page">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Private Prediction Pool</p>
+        <h1>World Cup Pool</h1>
+        <p class="subhead">Live leaderboard, group standings, and automatic updates every minute.</p>
       </div>
-      <div class="table-wrap">
-        <table class="table" id="leaderboardTable">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Player</th>
-              <th>Total</th>
-              <th>Perfect</th>
-              <th>Excellent</th>
-              <th>Good</th>
-              <th>Groups</th>
-              <th>Knockout</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+      <div class="meta-card">
+        <div class="meta-label">Last updated</div>
+        <div id="updatedAt" class="meta-value">Waiting for data...</div>
       </div>
-    </section>
+    </header>
 
-    <section class="grid-2">
-      <section class="panel">
-        <div class="panel__header">
-          <h2>Group Stage</h2>
-          <p>Per-group standings with prediction quality tiers.</p>
+    <main class="grid">
+      <section class="card wide">
+        <div class="card-header">
+          <h2>Leaderboard</h2>
+          <span class="pill">Auto-refreshing</span>
         </div>
-        <div id="groupsGrid" class="groups-grid"></div>
+        <div class="table-wrap">
+          <table id="leaderboard">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Name</th>
+                <th>Total</th>
+                <th>Perfect</th>
+                <th>Excellent</th>
+                <th>Good</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </section>
 
-      <section class="panel">
-        <div class="panel__header">
-          <h2>Knockout Bracket</h2>
-          <p>Track picks and current advancement by round.</p>
+      <section class="card wide">
+        <div class="card-header">
+          <h2>Actual group standings</h2>
+          <span class="pill">Random demo data for now</span>
         </div>
-        <div id="bracket" class="bracket"></div>
+        <div id="groups" class="groups-grid"></div>
       </section>
-    </section>
+    </main>
+  </div>
 
-    <section class="grid-2">
-      <section class="panel">
-        <div class="panel__header">
-          <h2>Tiebreakers</h2>
-          <p>How ties are broken when totals match.</p>
-        </div>
-        <ol id="tiebreakers" class="list"></ol>
-      </section>
-
-      <section class="panel">
-        <div class="panel__header">
-          <h2>How Scoring Works</h2>
-          <p>Quick summary of the pool format.</p>
-        </div>
-        <div id="scoringSummary" class="rules"></div>
-      </section>
-    </section>
-
-    <section class="panel">
-      <div class="panel__header">
-        <h2>Recent Results</h2>
-        <p>Use this area for finished matches, updates, or announcements.</p>
-      </div>
-      <div id="resultsFeed" class="feed"></div>
-    </section>
-  </main>
-
-  <footer class="footer">
-    <div class="container">
-      <span id="footerText">Built for your World Cup pool.</span>
-    </div>
-  </footer>
+  <script src="app.js"></script>
 </body>
 </html>
