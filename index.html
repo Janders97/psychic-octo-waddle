@@ -43,6 +43,7 @@
       <button class="tab" data-tab="picks">Participant Picks</button>
       <button class="tab" data-tab="groups">Groups</button>
       <button class="tab" data-tab="rules">Rules</button>
+      <button class="tab" data-tab="payouts">Entry / Payouts</button>
     </nav>
 
     <main>
@@ -52,7 +53,10 @@
             <h2>Leaderboard</h2>
             <p>Scores update automatically from the Google Sheet feed.</p>
           </div>
-          <button class="ghost-btn" id="refreshBtn">Refresh now</button>
+          <div class="panel__header-actions">
+            <span class="pill" id="dataSourcePill">Sample data</span>
+            <button class="ghost-btn" id="refreshBtn">Refresh now</button>
+          </div>
         </div>
 
         <div class="table-wrap">
@@ -61,16 +65,15 @@
               <tr>
                 <th>#</th>
                 <th>Participant</th>
-                <th>Points Won</th>
-                <th>Possible Points</th>
-                <th>Total</th>
+                <th>Score</th>
+                <th>Remaining Possible</th>
                 <th>Perfect</th>
                 <th>Excellent</th>
                 <th>Good</th>
               </tr>
             </thead>
             <tbody id="leaderboardBody">
-              <tr><td colspan="8" class="muted-cell">No scores loaded yet.</td></tr>
+              <tr><td colspan="7" class="muted-cell">No scores loaded yet.</td></tr>
             </tbody>
           </table>
         </div>
@@ -90,8 +93,8 @@
           <div>
             <h3>Hidden until you are ready to reveal it</h3>
             <p>
-              The participant picks tab is set to private for the time being. When you are ready,
-              change <code>picksPublic</code> in <code>app.js</code> to <code>true</code>.
+              The participant picks tab is private for now. When you want to reveal it,
+              change <code>PICKS_PUBLIC</code> in <code>app.js</code> to <code>true</code>.
             </p>
           </div>
         </div>
@@ -106,6 +109,12 @@
             <p>Current group-stage setup and sample standings.</p>
           </div>
         </div>
+        <div class="notice-card">
+          <p>
+            Once the live feed is connected, these standings update automatically every minute.
+            If a group becomes mathematically locked, the possible-points total will shrink with it.
+          </p>
+        </div>
         <div class="groups-grid" id="groupsGrid"></div>
       </section>
 
@@ -118,12 +127,35 @@
         </div>
 
         <div class="rules-card">
-          <h3>Group scoring</h3>
+          <h3>Group stage: read the room, not just the scores</h3>
+          <p>
+            Predict the full 1st-to-4th order in every group. Exact placements are worth 4,
+            near misses are worth 1, the correct top two teams add 2, and a perfect group adds 4.
+            That means each group is worth up to <strong>22 points</strong>.
+          </p>
           <ul>
             <li>Exact position: 4 points</li>
             <li>Off by 1 place: 1 point</li>
             <li>Correct top 2 teams: +2 points</li>
             <li>Perfect group order: +4 points</li>
+          </ul>
+          <p class="fine-print">
+            Tranches: Perfect = 22, Excellent = 17–21, Good = 12–16.
+          </p>
+        </div>
+
+        <div class="rules-card">
+          <h3>Knockout stage: where bold calls pay</h3>
+          <p>
+            The knockout competition is separate from the group stage. Correct advance picks earn
+            more or fewer points based on the odds at the time, so long-shot picks are rewarded
+            without making the pool feel random.
+          </p>
+          <ul>
+            <li>Group stage and knockout stage are separate competitions</li>
+            <li>Each competition gets 50% of the total pot</li>
+            <li>Longer odds = bigger points</li>
+            <li>Score each correct advance pick on its own merit</li>
           </ul>
         </div>
 
@@ -131,6 +163,45 @@
           <h3>Privacy note</h3>
           <p class="fine-print">
             Private prediction pool not for commercial gain.
+          </p>
+        </div>
+      </section>
+
+      <section class="panel" id="tab-payouts">
+        <div class="panel__header">
+          <div>
+            <h2>Entry / Payouts</h2>
+            <p>Buy-in, prize split, and the link to the working sheet.</p>
+          </div>
+        </div>
+
+        <div class="rules-card">
+          <h3>Buy-in and split</h3>
+          <ul>
+            <li>Buy-in: <strong>£20</strong></li>
+            <li>Group stage and knockout stage each receive <strong>50% of the total pot</strong></li>
+            <li>Suggested payout shape for each competition (with about 20 entrants): <strong>45% / 25% / 15% / 10% / 5%</strong></li>
+          </ul>
+          <p class="fine-print">
+            The exact payout structure can be adjusted once the final entrant count is known.
+          </p>
+        </div>
+
+        <div class="rules-card">
+          <h3>Google Sheet link</h3>
+          <p>
+            Add the live entry sheet, notes, and any final payout details here.
+          </p>
+          <p>
+            <a class="sheet-link" id="entrySheetLink" href="#" target="_blank" rel="noreferrer">Open entry sheet</a>
+          </p>
+        </div>
+
+        <div class="rules-card">
+          <h3>Suggested payout summary</h3>
+          <p class="fine-print">
+            A fair, simple split for each half-pot is: 1st 45%, 2nd 25%, 3rd 15%, 4th 10%, 5th 5%.
+            For 20 entrants, that keeps the pool top-heavy enough to feel meaningful while still paying a few places.
           </p>
         </div>
       </section>

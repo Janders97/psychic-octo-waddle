@@ -23,6 +23,8 @@ body {
   min-height: 100vh;
 }
 
+a { color: inherit; }
+
 .page-shell {
   max-width: 1240px;
   margin: 0 auto;
@@ -42,7 +44,8 @@ body {
 .panel,
 .rules-card,
 .locked-card,
-.stat-card {
+.stat-card,
+.notice-card {
   background: var(--card);
   border: 1px solid var(--border);
   backdrop-filter: blur(14px);
@@ -67,14 +70,14 @@ body {
 
 h1 {
   margin: 0;
-  font-size: clamp(2.3rem, 5vw, 4.25rem);
-  line-height: 0.98;
+  font-size: clamp(1.95rem, 4vw, 3.15rem);
+  line-height: 1;
 }
 
 .hero__subtitle {
   margin: 14px 0 0;
-  font-size: 1.45rem;
-  letter-spacing: 0.2rem;
+  font-size: 1.2rem;
+  letter-spacing: 0.18rem;
 }
 
 .hero__copy {
@@ -147,6 +150,14 @@ h1 {
   margin-bottom: 18px;
 }
 
+.panel__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .panel__header h2,
 .rules-card h3,
 .locked-card h3 {
@@ -160,7 +171,8 @@ h1 {
 .locked-card p,
 .site-footer p,
 td,
-th {
+th,
+.notice-card p {
   color: var(--muted);
 }
 
@@ -279,6 +291,11 @@ th {
   margin-bottom: 14px;
 }
 
+.notice-card {
+  padding: 14px 18px;
+  margin-bottom: 14px;
+}
+
 .fine-print {
   font-size: 0.85rem;
   opacity: 0.9;
@@ -288,6 +305,18 @@ th {
   text-align: center;
   margin-top: 18px;
   padding: 12px 6px 0;
+}
+
+.sheet-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(103, 211, 255, 0.16), rgba(141, 245, 199, 0.14));
+  border: 1px solid rgba(103, 211, 255, 0.28);
+  text-decoration: none;
+  font-weight: 700;
 }
 
 code {

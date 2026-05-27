@@ -1,13 +1,14 @@
-const WEB_APP_URL = "https://script.google.com/a/macros/colorado.edu/s/AKfycbxaAxhKUIFgEDNw5hj7BY6--u3_eBc94mEhddaHCfdktHgcSOy259OZhqUg_pxn3xhD/exec";
+const WEB_APP_URL = "PASTE_YOUR_DEPLOYED_WEB_APP_URL_HERE";
 const PICKS_PUBLIC = false;
+const ENTRY_SHEET_URL = "PASTE_YOUR_GOOGLE_SHEET_URL_HERE";
 
 const SAMPLE_DATA = {
   updatedAt: new Date().toISOString(),
   rows: [
-    { "Leaderboard Name": "Jordan", "Points Won": 102, "Points Possible": 198, "Total Points": 102, "Perfect Groups": 3, "Excellent Groups": 4, "Good Groups": 2 },
-    { "Leaderboard Name": "Sophie", "Points Won": 97, "Points Possible": 198, "Total Points": 97, "Perfect Groups": 2, "Excellent Groups": 5, "Good Groups": 3 },
-    { "Leaderboard Name": "Alex", "Points Won": 90, "Points Possible": 198, "Total Points": 90, "Perfect Groups": 2, "Excellent Groups": 4, "Good Groups": 2 },
-    { "Leaderboard Name": "Maya", "Points Won": 84, "Points Possible": 198, "Total Points": 84, "Perfect Groups": 1, "Excellent Groups": 3, "Good Groups": 4 }
+    { "Leaderboard Name": "Jordan", "Points Won": 102, "Points Possible": 198, "Points Remaining": 96, "Perfect Groups": 3, "Excellent Groups": 4, "Good Groups": 2 },
+    { "Leaderboard Name": "Sophie", "Points Won": 97, "Points Possible": 198, "Points Remaining": 101, "Perfect Groups": 2, "Excellent Groups": 5, "Good Groups": 3 },
+    { "Leaderboard Name": "Alex", "Points Won": 90, "Points Possible": 198, "Points Remaining": 108, "Perfect Groups": 2, "Excellent Groups": 4, "Good Groups": 2 },
+    { "Leaderboard Name": "Maya", "Points Won": 84, "Points Possible": 198, "Points Remaining": 114, "Perfect Groups": 1, "Excellent Groups": 3, "Good Groups": 4 }
   ]
 };
 
@@ -56,7 +57,8 @@ const SAMPLE_PICKS = [
 const state = {
   data: SAMPLE_DATA,
   groups: SAMPLE_GROUPS,
-  updatedAt: SAMPLE_DATA.updatedAt
+  updatedAt: SAMPLE_DATA.updatedAt,
+  isLive: false
 };
 
 function initTabs() {
@@ -65,7 +67,8 @@ function initTabs() {
     leaderboard: document.getElementById("tab-leaderboard"),
     picks: document.getElementById("tab-picks"),
     groups: document.getElementById("tab-groups"),
-    rules: document.getElementById("tab-rules")
+    rules: document.getElementById("tab-rules"),
+    payouts: document.getElementById("tab-payouts")
   };
 
   tabs.forEach(btn => {
@@ -79,7 +82,7 @@ function initTabs() {
   });
 }
 
-function fmtPoints(won, possible) {
+function scoreText(won, possible) {
   if (won === null || won === undefined) return "—";
   if (possible === null || possible === undefined) return String(won);
   return `${won} / ${possible}`;
@@ -87,15 +90,18 @@ function fmtPoints(won, possible) {
 
 function renderSummary(rows) {
   const participants = rows.length;
-  const topScore = rows.reduce((max, row) => {
-    const score = Number(row["Points Won"] ?? row["Total Points"] ?? 0);
-    return Math.max(max, score);
-  }, 0);
+  const topRow = rows.reduce((best, row) => {
+    const bestWon = Number(best?.["Points Won"] ?? best?.["Total Points"] ?? 0);
+    const rowWon = Number(row["Points Won"] ?? row["Total Points"] ?? 0);
+    return rowWon > bestWon ? row : best;
+  }, null);
 
+  const topWon = Number(topRow?.["Points Won"] ?? topRow?.["Total Points"] ?? 0);
+  const topPossible = Number(topRow?.["Points Possible"] ?? topRow?.["Possible Points"] ?? 0);
   const updatedAt = state.updatedAt ? new Date(state.updatedAt) : null;
 
   document.getElementById("statParticipants").textContent = participants ? String(participants) : "—";
-  document.getElementById("statTopScore").textContent = topScore ? String(topScore) : "—";
+  document.getElementById("statTopScore").textContent = topRow ? scoreText(topWon, topPossible || null) : "—";
   document.getElementById("statUpdated").textContent = updatedAt && !Number.isNaN(updatedAt.getTime())
     ? updatedAt.toLocaleString()
     : "—";
@@ -114,21 +120,21 @@ function renderLeaderboard(rows) {
   tbody.innerHTML = "";
 
   if (!sorted.length) {
-    tbody.innerHTML = '<tr><td colspan="8" class="muted-cell">No scores loaded yet.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="muted-cell">No scores loaded yet.</td></tr>';
     renderSummary([]);
     return;
   }
 
   sorted.forEach((row, idx) => {
-    const pointsWon = row["Points Won"] ?? row["Total Points"] ?? 0;
+    const pointsWon = Number(row["Points Won"] ?? row["Total Points"] ?? 0);
     const possible = row["Points Possible"] ?? row["Possible Points"] ?? null;
+    const remaining = row["Points Remaining"] ?? row["Possible Remaining"] ?? (possible !== null ? Math.max(Number(possible) - pointsWon, 0) : null);
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${idx + 1}</td>
       <td>${row["Leaderboard Name"] || row["Name"] || ""}</td>
-      <td>${pointsWon}</td>
-      <td>${possible === null ? "—" : possible}</td>
-      <td>${fmtPoints(pointsWon, possible)}</td>
+      <td>${scoreText(pointsWon, possible)}</td>
+      <td>${remaining === null ? "—" : remaining}</td>
       <td>${row["Perfect Groups"] ?? 0}</td>
       <td>${row["Excellent Groups"] ?? 0}</td>
       <td>${row["Good Groups"] ?? 0}</td>
@@ -183,17 +189,26 @@ function renderPicks(picks) {
   });
 }
 
-function applyData(payload) {
+function applyData(payload, isLive) {
   const rows = payload?.rows || [];
   state.data = payload;
   state.updatedAt = payload?.updatedAt || payload?.generatedAt || new Date().toISOString();
+  state.isLive = !!isLive;
+
+  const pill = document.getElementById("dataSourcePill");
+  if (pill) {
+    pill.textContent = state.isLive ? "Live sheet data" : "Sample data";
+    pill.style.background = state.isLive ? "rgba(141,245,199,0.14)" : "rgba(255,196,97,0.12)";
+    pill.style.color = state.isLive ? "#8df5c7" : "#ffd59c";
+    pill.style.borderColor = state.isLive ? "rgba(141,245,199,0.22)" : "rgba(255,196,97,0.18)";
+  }
+
   renderLeaderboard(rows);
-  document.getElementById("statUpdated").textContent = new Date(state.updatedAt).toLocaleString();
 }
 
 function refreshLeaderboard() {
   if (!WEB_APP_URL || WEB_APP_URL.includes("PASTE_YOUR_DEPLOYED_WEB_APP_URL_HERE")) {
-    applyData(SAMPLE_DATA);
+    applyData(SAMPLE_DATA, false);
     return;
   }
 
@@ -201,14 +216,14 @@ function refreshLeaderboard() {
   script.src = `${WEB_APP_URL}?t=${Date.now()}`;
   script.onload = () => {
     if (window.POOL_DATA) {
-      applyData(window.POOL_DATA);
+      applyData(window.POOL_DATA, true);
     } else {
-      applyData(SAMPLE_DATA);
+      applyData(SAMPLE_DATA, false);
     }
     script.remove();
   };
   script.onerror = () => {
-    applyData(SAMPLE_DATA);
+    applyData(SAMPLE_DATA, false);
     script.remove();
   };
   document.body.appendChild(script);
@@ -220,11 +235,23 @@ function initRefreshButton() {
   btn.addEventListener("click", refreshLeaderboard);
 }
 
+function initEntryLink() {
+  const link = document.getElementById("entrySheetLink");
+  if (!link) return;
+  if (ENTRY_SHEET_URL && !ENTRY_SHEET_URL.includes("PASTE_YOUR_GOOGLE_SHEET_URL_HERE")) {
+    link.href = ENTRY_SHEET_URL;
+  } else {
+    link.href = "#";
+    link.addEventListener("click", e => e.preventDefault());
+  }
+}
+
 function init() {
   initTabs();
   renderGroups(SAMPLE_GROUPS);
   renderPicks(SAMPLE_PICKS);
   initRefreshButton();
+  initEntryLink();
   refreshLeaderboard();
   setInterval(refreshLeaderboard, 60000);
 }

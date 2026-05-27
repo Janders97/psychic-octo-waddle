@@ -1,22 +1,29 @@
-# World Cup 2026 Pool
+# World Cup 2026 Pool site
+
+## What to edit first
+
+1. Open `app.js`
+2. Paste your Apps Script web app URL into `WEB_APP_URL`
+3. Paste your Google Sheet URL into `ENTRY_SHEET_URL`
 
 ## Files
-- `index.html`
-- `styles.css`
-- `app.js`
 
-## What changed
-- Title updated to **World Cup 2026 Pool**
-- Branding updated to **Anderson Prediction Pool**
-- Added 🇨🇦 🇲🇽 🇺🇸 in the header
-- Leaderboard now shows points won / possible points
-- Added a private Participant Picks tab
-- Added a disclaimer in the footer
+- `index.html` – the page layout
+- `styles.css` – the styling
+- `app.js` – live data feed and page logic
 
-## What to edit
-In `app.js`:
-- replace `WEB_APP_URL` with your Google Apps Script web app URL
-- set `PICKS_PUBLIC = true` only when you want the participant picks tab to be visible
+## What the site expects from Apps Script
 
-## Notes
-The site is designed to read leaderboard data from your Apps Script web app every minute.
+The web app should return rows with fields like:
+
+- `Leaderboard Name`
+- `Points Won`
+- `Points Possible`
+- `Points Remaining`
+- `Perfect Groups`
+- `Excellent Groups`
+- `Good Groups`
+
+## How refresh works
+
+The page asks for fresh leaderboard data every minute.
