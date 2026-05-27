@@ -45,7 +45,8 @@ a { color: inherit; }
 .rules-card,
 .locked-card,
 .stat-card,
-.notice-card {
+.notice-card,
+.leaderboard-section {
   background: var(--card);
   border: 1px solid var(--border);
   backdrop-filter: blur(14px);
@@ -70,14 +71,14 @@ a { color: inherit; }
 
 h1 {
   margin: 0;
-  font-size: clamp(1.95rem, 4vw, 3.15rem);
-  line-height: 1;
+  font-size: clamp(1.55rem, 3vw, 2.4rem);
+  line-height: 1.05;
 }
 
 .hero__subtitle {
-  margin: 14px 0 0;
-  font-size: 1.2rem;
-  letter-spacing: 0.18rem;
+  margin: 10px 0 0;
+  font-size: 1rem;
+  letter-spacing: 0.12rem;
 }
 
 .hero__copy {
@@ -108,7 +109,14 @@ h1 {
 }
 
 .stat-card strong {
-  font-size: 1.5rem;
+  font-size: 1.45rem;
+  display: block;
+}
+
+.stat-card__subvalue {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.9rem;
 }
 
 .tabs {
@@ -150,17 +158,23 @@ h1 {
   margin-bottom: 18px;
 }
 
-.panel__header-actions {
+.leaderboard-section {
+  padding: 18px;
+  margin-bottom: 16px;
+}
+
+.leaderboard-section__header {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .panel__header h2,
 .rules-card h3,
-.locked-card h3 {
+.locked-card h3,
+.leaderboard-section__header h3 {
   margin: 0 0 6px;
   font-size: 1.3rem;
 }
@@ -172,18 +186,28 @@ h1 {
 .site-footer p,
 td,
 th,
-.notice-card p {
+.notice-card p,
+.leaderboard-section__header p {
   color: var(--muted);
 }
 
-.ghost-btn {
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,0.05);
-  color: var(--text);
-  padding: 10px 14px;
-  border-radius: 12px;
-  cursor: pointer;
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 0.82rem;
   font-weight: 700;
+  background: rgba(141, 245, 199, 0.12);
+  color: var(--accent-2);
+  border: 1px solid rgba(141, 245, 199, 0.18);
+  white-space: nowrap;
+}
+
+.pill--locked {
+  background: rgba(255, 196, 97, 0.12);
+  color: #ffd59c;
+  border: 1px solid rgba(255, 196, 97, 0.18);
 }
 
 .table-wrap { overflow-x: auto; }
@@ -215,21 +239,6 @@ th,
 .muted-cell {
   text-align: center;
   padding: 28px 12px !important;
-}
-
-.pill {
-  display: inline-flex;
-  align-items: center;
-  padding: 8px 12px;
-  border-radius: 999px;
-  font-size: 0.82rem;
-  font-weight: 700;
-}
-
-.pill--locked {
-  background: rgba(255, 196, 97, 0.12);
-  color: #ffd59c;
-  border: 1px solid rgba(255, 196, 97, 0.18);
 }
 
 .locked-card {
@@ -286,6 +295,16 @@ th,
   color: rgba(245,247,251,0.82);
 }
 
+.group-card ol {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.group-card ol li {
+  margin: 6px 0;
+  color: rgba(245,247,251,0.82);
+}
+
 .rules-card {
   padding: 18px;
   margin-bottom: 14px;
@@ -328,5 +347,6 @@ code {
 
 @media (max-width: 860px) {
   .hero { grid-template-columns: 1fr; }
-  .panel__header { flex-direction: column; align-items: flex-start; }
+  .panel__header,
+  .leaderboard-section__header { flex-direction: column; align-items: flex-start; }
 }

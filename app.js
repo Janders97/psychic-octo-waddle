@@ -1,63 +1,12 @@
-const WEB_APP_URL = "https://script.google.com/a/macros/colorado.edu/s/AKfycbxaAxhKUIFgEDNw5hj7BY6--u3_eBc94mEhddaHCfdktHgcSOy259OZhqUg_pxn3xhD/exec";
-const PICKS_PUBLIC = true;
-const ENTRY_SHEET_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe6zAHK_tEozTJuD1ALQwpPjXFdB1jwwhkRT49sfI8YPoiqTw/viewform";
-
-const SAMPLE_DATA = {
-  updatedAt: new Date().toISOString(),
-  rows: [
-    { "Leaderboard Name": "Jordan", "Points Won": 102, "Points Possible": 198, "Points Remaining": 96, "Perfect Groups": 3, "Excellent Groups": 4, "Good Groups": 2 },
-    { "Leaderboard Name": "Sophie", "Points Won": 97, "Points Possible": 198, "Points Remaining": 101, "Perfect Groups": 2, "Excellent Groups": 5, "Good Groups": 3 },
-    { "Leaderboard Name": "Alex", "Points Won": 90, "Points Possible": 198, "Points Remaining": 108, "Perfect Groups": 2, "Excellent Groups": 4, "Good Groups": 2 },
-    { "Leaderboard Name": "Maya", "Points Won": 84, "Points Possible": 198, "Points Remaining": 114, "Perfect Groups": 1, "Excellent Groups": 3, "Good Groups": 4 }
-  ]
-};
-
-const SAMPLE_GROUPS = [
-  { group: "A", teams: ["Mexico", "South Africa", "South Korea", "Czechia"] },
-  { group: "B", teams: ["Canada", "Bosnia and Herzegovina", "Qatar", "Switzerland"] },
-  { group: "C", teams: ["Brazil", "Morocco", "Haiti", "Scotland"] },
-  { group: "D", teams: ["USA", "Paraguay", "Australia", "Turkey"] },
-  { group: "E", teams: ["Germany", "Curacao", "Ivory Coast", "Ecuador"] },
-  { group: "F", teams: ["Netherlands", "Japan", "Sweden", "Tunisia"] },
-  { group: "G", teams: ["Belgium", "Egypt", "Iran", "New Zealand"] },
-  { group: "H", teams: ["Spain", "Cape Verde", "Saudi Arabia", "Uruguay"] },
-  { group: "I", teams: ["France", "Senegal", "Iraq", "Norway"] },
-  { group: "J", teams: ["Argentina", "Algeria", "Austria", "Jordan"] },
-  { group: "K", teams: ["Portugal", "DR Congo", "Uzbekistan", "Colombia"] },
-  { group: "L", teams: ["England", "Croatia", "Ghana", "Panama"] }
-];
-
-const SAMPLE_PICKS = [
-  {
-    name: "Jordan",
-    picks: {
-      A: ["Mexico", "South Korea", "South Africa", "Czechia"],
-      B: ["Switzerland", "Canada", "Qatar", "Bosnia and Herzegovina"],
-      C: ["Brazil", "Morocco", "Scotland", "Haiti"]
-    }
-  },
-  {
-    name: "Sophie",
-    picks: {
-      A: ["Mexico", "South Africa", "South Korea", "Czechia"],
-      D: ["USA", "Paraguay", "Australia", "Turkey"],
-      H: ["Spain", "Uruguay", "Saudi Arabia", "Cape Verde"]
-    }
-  },
-  {
-    name: "Alex",
-    picks: {
-      B: ["Canada", "Switzerland", "Bosnia and Herzegovina", "Qatar"],
-      F: ["Netherlands", "Japan", "Sweden", "Tunisia"],
-      J: ["Argentina", "Austria", "Algeria", "Jordan"]
-    }
-  }
-];
+const WEB_APP_URL = "PASTE_YOUR_DEPLOYED_WEB_APP_URL_HERE";
+const PICKS_PUBLIC = false;
+const ENTRY_SHEET_URL = "PASTE_YOUR_GOOGLE_SHEET_URL_HERE";
 
 const state = {
-  data: SAMPLE_DATA,
-  groups: SAMPLE_GROUPS,
-  updatedAt: SAMPLE_DATA.updatedAt,
+  leaderboardRows: [],
+  knockoutRows: [],
+  actualGroups: [],
+  updatedAt: null,
   isLive: false
 };
 
@@ -83,66 +32,82 @@ function initTabs() {
 }
 
 function scoreText(won, possible) {
-  if (won === null || won === undefined) return "—";
+  if (won === null || won === undefined) return "-";
   if (possible === null || possible === undefined) return String(won);
   return `${won} / ${possible}`;
+}
+
+function normalizeScore(row) {
+  return Number(row["Points Won"] ?? row["Total Points"] ?? row["Score"] ?? 0);
+}
+
+function normalizePossible(row, won) {
+  const possible = row["Points Possible"] ?? row["Possible Points"] ?? row["Points Remaining"] ?? null;
+  if (possible !== null && possible !== undefined && possible !== "") return Number(possible);
+  return Number.isFinite(won) ? won : null;
 }
 
 function renderSummary(rows) {
   const participants = rows.length;
   const topRow = rows.reduce((best, row) => {
-    const bestWon = Number(best?.["Points Won"] ?? best?.["Total Points"] ?? 0);
-    const rowWon = Number(row["Points Won"] ?? row["Total Points"] ?? 0);
+    const bestWon = best ? normalizeScore(best) : -1;
+    const rowWon = normalizeScore(row);
     return rowWon > bestWon ? row : best;
   }, null);
 
-  const topWon = Number(topRow?.["Points Won"] ?? topRow?.["Total Points"] ?? 0);
-  const topPossible = Number(topRow?.["Points Possible"] ?? topRow?.["Possible Points"] ?? 0);
+  const topWon = topRow ? normalizeScore(topRow) : null;
+  const topPossible = topRow ? normalizePossible(topRow, topWon) : null;
+  const topName = topRow ? String(topRow["Leaderboard Name"] || topRow["Name"] || "") : "";
   const updatedAt = state.updatedAt ? new Date(state.updatedAt) : null;
 
-  document.getElementById("statParticipants").textContent = participants ? String(participants) : "—";
-  document.getElementById("statTopScore").textContent = topRow ? scoreText(topWon, topPossible || null) : "—";
-  document.getElementById("statUpdated").textContent = updatedAt && !Number.isNaN(updatedAt.getTime())
-    ? updatedAt.toLocaleString()
-    : "—";
+  const participantsEl = document.getElementById("statParticipants");
+  const topScoreEl = document.getElementById("statTopScore");
+  const topScorerEl = document.getElementById("statTopScorer");
+  const updatedEl = document.getElementById("statUpdated");
+
+  if (participantsEl) participantsEl.textContent = participants ? String(participants) : "-";
+  if (topScoreEl) topScoreEl.textContent = topRow ? scoreText(topWon, topPossible) : "-";
+  if (topScorerEl) topScorerEl.textContent = topName ? `Top scorer: ${topName}` : "";
+  if (updatedEl) {
+    updatedEl.textContent = updatedAt && !Number.isNaN(updatedAt.getTime())
+      ? updatedAt.toLocaleString()
+      : "-";
+  }
 }
 
-function renderLeaderboard(rows) {
-  const tbody = document.getElementById("leaderboardBody");
+function renderTable(rows, tbodyId, emptyText) {
+  const tbody = document.getElementById(tbodyId);
   if (!tbody) return;
 
   const sorted = [...rows].sort((a, b) => {
-    const scoreA = Number(a["Points Won"] ?? a["Total Points"] ?? 0);
-    const scoreB = Number(b["Points Won"] ?? b["Total Points"] ?? 0);
+    const scoreA = normalizeScore(a);
+    const scoreB = normalizeScore(b);
     return scoreB - scoreA;
   });
 
   tbody.innerHTML = "";
 
   if (!sorted.length) {
-    tbody.innerHTML = '<tr><td colspan="7" class="muted-cell">No scores loaded yet.</td></tr>';
-    renderSummary([]);
+    tbody.innerHTML = `<tr><td colspan="7" class="muted-cell">${emptyText}</td></tr>`;
     return;
   }
 
   sorted.forEach((row, idx) => {
-    const pointsWon = Number(row["Points Won"] ?? row["Total Points"] ?? 0);
-    const possible = row["Points Possible"] ?? row["Possible Points"] ?? null;
-    const remaining = row["Points Remaining"] ?? row["Possible Remaining"] ?? (possible !== null ? Math.max(Number(possible) - pointsWon, 0) : null);
+    const pointsWon = normalizeScore(row);
+    const pointsPossible = normalizePossible(row, pointsWon);
+    const pointsRemaining = row["Points Remaining"] ?? (pointsPossible !== null ? Math.max(Number(pointsPossible) - Number(pointsWon), 0) : null);
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${idx + 1}</td>
       <td>${row["Leaderboard Name"] || row["Name"] || ""}</td>
-      <td>${scoreText(pointsWon, possible)}</td>
-      <td>${remaining === null ? "—" : remaining}</td>
+      <td>${scoreText(pointsWon, pointsPossible)}</td>
+      <td>${pointsRemaining === null ? "-" : pointsRemaining}</td>
       <td>${row["Perfect Groups"] ?? 0}</td>
       <td>${row["Excellent Groups"] ?? 0}</td>
       <td>${row["Good Groups"] ?? 0}</td>
     `;
     tbody.appendChild(tr);
   });
-
-  renderSummary(sorted);
 }
 
 function renderGroups(groups) {
@@ -150,65 +115,67 @@ function renderGroups(groups) {
   if (!grid) return;
   grid.innerHTML = "";
 
+  if (!groups.length) {
+    grid.innerHTML = '<div class="notice-card"><p>Waiting for live group standings from the sheet feed.</p></div>';
+    return;
+  }
+
   groups.forEach(group => {
     const card = document.createElement("article");
     card.className = "group-card";
+    const ordered = [group["1st"], group["2nd"], group["3rd"], group["4th"]].filter(Boolean);
     card.innerHTML = `
-      <h4>Group ${group.group}</h4>
-      <ul>
-        ${group.teams.map(team => `<li>${team}</li>`).join("")}
-      </ul>
+      <h4>${group.Group || group.group || "Group"}</h4>
+      <ol>
+        ${ordered.map(team => `<li>${team}</li>`).join("")}
+      </ol>
     `;
     grid.appendChild(card);
   });
 }
 
-function renderPicks(picks) {
+function renderPicks() {
   const grid = document.getElementById("picksGrid");
   if (!grid) return;
-
-  if (!PICKS_PUBLIC) {
-    grid.innerHTML = "";
-    return;
-  }
-
   grid.innerHTML = "";
-  picks.forEach(person => {
-    const card = document.createElement("article");
-    card.className = "pick-card";
-    const groupsHtml = Object.entries(person.picks).map(([group, teams]) => `
-      <div style="margin-top:12px;">
-        <strong>Group ${group}</strong>
-        <ul>
-          ${teams.map(team => `<li>${team}</li>`).join("")}
-        </ul>
-      </div>
-    `).join("");
-    card.innerHTML = `<h4>${person.name}</h4>${groupsHtml}`;
-    grid.appendChild(card);
-  });
+
+  if (!PICKS_PUBLIC) return;
+
+  grid.innerHTML = '<div class="notice-card"><p>Participant picks are ready to be revealed later.</p></div>';
 }
 
 function applyData(payload, isLive) {
-  const rows = payload?.rows || [];
-  state.data = payload;
+  const leaderboardRows = payload?.leaderboardRows || payload?.rows || [];
+  const knockoutRows = payload?.knockoutRows || [];
+  const actualGroups = payload?.actualGroups || [];
+
+  state.leaderboardRows = leaderboardRows;
+  state.knockoutRows = knockoutRows;
+  state.actualGroups = actualGroups;
   state.updatedAt = payload?.updatedAt || payload?.generatedAt || new Date().toISOString();
   state.isLive = !!isLive;
 
   const pill = document.getElementById("dataSourcePill");
   if (pill) {
-    pill.textContent = state.isLive ? "Live sheet data" : "Sample data";
+    pill.textContent = state.isLive ? "Live sheet data" : "Connecting";
     pill.style.background = state.isLive ? "rgba(141,245,199,0.14)" : "rgba(255,196,97,0.12)";
     pill.style.color = state.isLive ? "#8df5c7" : "#ffd59c";
     pill.style.borderColor = state.isLive ? "rgba(141,245,199,0.22)" : "rgba(255,196,97,0.18)";
   }
 
-  renderLeaderboard(rows);
+  renderLeaderboard();
+  renderGroups(state.actualGroups);
+  renderSummary(state.leaderboardRows.length ? state.leaderboardRows : state.knockoutRows);
 }
 
-function refreshLeaderboard() {
+function renderLeaderboard() {
+  renderTable(state.leaderboardRows, "groupLeaderboardBody", "Connecting to live sheet data...");
+  renderTable(state.knockoutRows, "knockoutLeaderboardBody", "Waiting for knockout scores...");
+}
+
+function refreshLiveData() {
   if (!WEB_APP_URL || WEB_APP_URL.includes("PASTE_YOUR_DEPLOYED_WEB_APP_URL_HERE")) {
-    applyData(SAMPLE_DATA, false);
+    applyData({ leaderboardRows: [], knockoutRows: [], actualGroups: [], updatedAt: null }, false);
     return;
   }
 
@@ -218,21 +185,15 @@ function refreshLeaderboard() {
     if (window.POOL_DATA) {
       applyData(window.POOL_DATA, true);
     } else {
-      applyData(SAMPLE_DATA, false);
+      applyData({ leaderboardRows: [], knockoutRows: [], actualGroups: [], updatedAt: null }, false);
     }
     script.remove();
   };
   script.onerror = () => {
-    applyData(SAMPLE_DATA, false);
+    applyData({ leaderboardRows: [], knockoutRows: [], actualGroups: [], updatedAt: null }, false);
     script.remove();
   };
   document.body.appendChild(script);
-}
-
-function initRefreshButton() {
-  const btn = document.getElementById("refreshBtn");
-  if (!btn) return;
-  btn.addEventListener("click", refreshLeaderboard);
 }
 
 function initEntryLink() {
@@ -247,13 +208,12 @@ function initEntryLink() {
 }
 
 function init() {
+  document.title = "World Cup 2026 Pool";
   initTabs();
-  renderGroups(SAMPLE_GROUPS);
-  renderPicks(SAMPLE_PICKS);
-  initRefreshButton();
+  renderPicks();
   initEntryLink();
-  refreshLeaderboard();
-  setInterval(refreshLeaderboard, 60000);
+  refreshLiveData();
+  setInterval(refreshLiveData, 60000);
 }
 
 document.addEventListener("DOMContentLoaded", init);

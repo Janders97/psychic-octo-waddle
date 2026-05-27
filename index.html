@@ -18,22 +18,23 @@
         <h1>World Cup 2026 Pool</h1>
         <p class="hero__subtitle">🇨🇦 🇲🇽 🇺🇸</p>
         <p class="hero__copy">
-          Live group predictions, leaderboard standings, and private participant picks in one place.
+          Live group and knockout standings, updated from the Google Sheet feed every minute.
         </p>
       </div>
 
       <div class="hero__stats" id="summaryCards">
         <div class="stat-card">
           <span class="stat-card__label">Participants</span>
-          <strong id="statParticipants">—</strong>
+          <strong id="statParticipants">Connecting...</strong>
         </div>
         <div class="stat-card">
           <span class="stat-card__label">Top Score</span>
-          <strong id="statTopScore">—</strong>
+          <strong id="statTopScore">Connecting...</strong>
+          <div class="stat-card__subvalue" id="statTopScorer"></div>
         </div>
         <div class="stat-card">
           <span class="stat-card__label">Last Updated</span>
-          <strong id="statUpdated">—</strong>
+          <strong id="statUpdated">Connecting...</strong>
         </div>
       </div>
     </header>
@@ -51,39 +52,73 @@
         <div class="panel__header">
           <div>
             <h2>Leaderboard</h2>
-            <p>Scores update automatically from the Google Sheet feed.</p>
+            <p>Live standings from the Google Sheet feed.</p>
           </div>
-          <div class="panel__header-actions">
-            <span class="pill" id="dataSourcePill">Sample data</span>
-            <button class="ghost-btn" id="refreshBtn">Refresh now</button>
-          </div>
+          <span class="pill" id="dataSourcePill">Connecting</span>
         </div>
 
-        <div class="table-wrap">
-          <table class="leaderboard-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Participant</th>
-                <th>Score</th>
-                <th>Remaining Possible</th>
-                <th>Perfect</th>
-                <th>Excellent</th>
-                <th>Good</th>
-              </tr>
-            </thead>
-            <tbody id="leaderboardBody">
-              <tr><td colspan="7" class="muted-cell">No scores loaded yet.</td></tr>
-            </tbody>
-          </table>
-        </div>
+        <section class="leaderboard-section">
+          <div class="leaderboard-section__header">
+            <div>
+              <h3>Group Stage Leaderboard</h3>
+              <p>Points won / points possible, plus what is still mathematically left to chase.</p>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table class="leaderboard-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Participant</th>
+                  <th>Points</th>
+                  <th>Remaining</th>
+                  <th>Perfect</th>
+                  <th>Excellent</th>
+                  <th>Good</th>
+                </tr>
+              </thead>
+              <tbody id="groupLeaderboardBody">
+                <tr><td colspan="7" class="muted-cell">Connecting to live sheet data...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="leaderboard-section">
+          <div class="leaderboard-section__header">
+            <div>
+              <h3>Knockout Stage Leaderboard</h3>
+              <p>Bracket picks all the way through to the winner.</p>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table class="leaderboard-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Participant</th>
+                  <th>Points</th>
+                  <th>Remaining</th>
+                  <th>Perfect</th>
+                  <th>Excellent</th>
+                  <th>Good</th>
+                </tr>
+              </thead>
+              <tbody id="knockoutLeaderboardBody">
+                <tr><td colspan="7" class="muted-cell">Waiting for knockout scores...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
       </section>
 
       <section class="panel" id="tab-picks">
         <div class="panel__header">
           <div>
             <h2>Participant Picks</h2>
-            <p class="muted">This section is private for now.</p>
+            <p class="muted">Hidden for now. Keep this private until you are ready to reveal it.</p>
           </div>
           <span class="pill pill--locked">Locked</span>
         </div>
@@ -91,10 +126,9 @@
         <div class="locked-card">
           <div class="locked-card__icon">🔒</div>
           <div>
-            <h3>Hidden until you are ready to reveal it</h3>
+            <h3>Private for now</h3>
             <p>
-              The participant picks tab is private for now. When you want to reveal it,
-              change <code>PICKS_PUBLIC</code> in <code>app.js</code> to <code>true</code>.
+              The participant picks tab is hidden until you switch <code>PICKS_PUBLIC</code> to <code>true</code> in <code>app.js</code>.
             </p>
           </div>
         </div>
@@ -106,13 +140,14 @@
         <div class="panel__header">
           <div>
             <h2>Groups</h2>
-            <p>Current group-stage setup and sample standings.</p>
+            <p>Live group-stage standings from the sheet feed.</p>
           </div>
         </div>
         <div class="notice-card">
           <p>
-            Once the live feed is connected, these standings update automatically every minute.
-            If a group becomes mathematically locked, the possible-points total will shrink with it.
+            These standings update automatically every minute. Once the tournament starts,
+            the table will follow the sheet feed. If a group becomes mathematically locked,
+            the possible points left in that group will shrink to match.
           </p>
         </div>
         <div class="groups-grid" id="groupsGrid"></div>
@@ -127,11 +162,11 @@
         </div>
 
         <div class="rules-card">
-          <h3>Group stage: read the room, not just the scores</h3>
+          <h3>Group stage: guess the order, not the scores</h3>
           <p>
-            Predict the full 1st-to-4th order in every group. Exact placements are worth 4,
-            near misses are worth 1, the correct top two teams add 2, and a perfect group adds 4.
-            That means each group is worth up to <strong>22 points</strong>.
+            For each group, rank the four teams from 1st to 4th. You are only predicting the
+            finishing order. Exact placements are worth 4 points, near misses are worth 1,
+            the correct top two teams add 2, and a perfect group adds 4.
           </p>
           <ul>
             <li>Exact position: 4 points</li>
@@ -140,29 +175,30 @@
             <li>Perfect group order: +4 points</li>
           </ul>
           <p class="fine-print">
-            Tranches: Perfect = 22, Excellent = 17–21, Good = 12–16.
+            Max per group: 22 points. Tranches: Perfect = 22, Excellent = 17-21, Good = 12-16.
+          </p>
+          <p class="fine-print">
+            Group stage tiebreakers: most perfect groups, then most excellent groups, then most good groups, then most exact placements.
           </p>
         </div>
 
         <div class="rules-card">
-          <h3>Knockout stage: where bold calls pay</h3>
+          <h3>Knockout stage: build the bracket to the champion</h3>
           <p>
-            The knockout competition is separate from the group stage. Correct advance picks earn
-            more or fewer points based on the odds at the time, so long-shot picks are rewarded
-            without making the pool feel random.
+            The knockout competition is separate from the group stage. Predict the bracket all the
+            way from the round of 32 to the winner. Each correct advance is weighted by the odds
+            at the time: harder, less likely calls are worth more; easy favorites are worth less.
+            That keeps the contest skill-based without making it feel random.
           </p>
           <ul>
+            <li>Predict the whole bracket through to the winner</li>
+            <li>Odds-weighted scoring rewards bolder picks</li>
+            <li>Each correct advance pick is scored on its own</li>
             <li>Group stage and knockout stage are separate competitions</li>
             <li>Each competition gets 50% of the total pot</li>
-            <li>Longer odds = bigger points</li>
-            <li>Score each correct advance pick on its own merit</li>
           </ul>
-        </div>
-
-        <div class="rules-card">
-          <h3>Privacy note</h3>
           <p class="fine-print">
-            Private prediction pool not for commercial gain.
+            Knockout tiebreakers: most points in the final, then semifinal, then quarterfinal, then round of 16, then round of 32.
           </p>
         </div>
       </section>
@@ -171,7 +207,7 @@
         <div class="panel__header">
           <div>
             <h2>Entry / Payouts</h2>
-            <p>Buy-in, prize split, and the link to the working sheet.</p>
+            <p>Buy-in, prize split, and the live sheet link.</p>
           </div>
         </div>
 
@@ -209,7 +245,7 @@
 
     <footer class="site-footer">
       <p>Private prediction pool not for commercial gain.</p>
-      <p class="muted">Anderson Prediction Pool · World Cup 2026</p>
+      <p class="muted">Anderson Prediction Pool &middot; World Cup 2026</p>
     </footer>
   </div>
 
