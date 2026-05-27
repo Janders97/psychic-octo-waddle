@@ -1,4 +1,4 @@
-// Paste your Apps Script web app /exec URL here.
+// Paste your deployed Apps Script web app /exec URL here.
 const APPS_SCRIPT_WEB_APP_URL = "PASTE_YOUR_WEB_APP_URL_HERE";
 const REFRESH_MS = 60000;
 
@@ -13,6 +13,8 @@ function renderLeaderboard(rows) {
     if (perfectDiff !== 0) return perfectDiff;
     const excellentDiff = Number(b["Excellent Groups"] || 0) - Number(a["Excellent Groups"] || 0);
     if (excellentDiff !== 0) return excellentDiff;
+    const goodDiff = Number(b["Good Groups"] || 0) - Number(a["Good Groups"] || 0);
+    if (goodDiff !== 0) return goodDiff;
     return String(a["Leaderboard Name"] || "").localeCompare(String(b["Leaderboard Name"] || ""));
   });
 
@@ -37,6 +39,7 @@ function renderActualGroups(groups) {
 
   const order = ["A","B","C","D","E","F","G","H","I","J","K","L"];
   const byGroup = new Map();
+
   groups.forEach(row => {
     const groupName = String(row.Group || row["Group"] || "").trim();
     const letter = groupName.match(/([A-L])/i);
@@ -54,7 +57,7 @@ function renderActualGroups(groups) {
     card.innerHTML = `
       <div class="group-title">
         <h3>Group ${letter}</h3>
-        <span class="muted">Live demo data</span>
+        <span class="muted">Updated live</span>
       </div>
       <ol>
         <li>${escapeHtml(row["1st"] || "")}</li>
@@ -69,7 +72,7 @@ function renderActualGroups(groups) {
 
 function refreshSite() {
   if (!APPS_SCRIPT_WEB_APP_URL || APPS_SCRIPT_WEB_APP_URL.includes("PASTE_YOUR_WEB_APP_URL_HERE")) {
-    console.warn("Paste your Apps Script web app URL into app.js.");
+    console.warn("Paste your Apps Script web app URL into site/app.js first.");
     return;
   }
 
@@ -85,6 +88,7 @@ function refreshSite() {
     }
     s.remove();
   };
+  s.onerror = () => s.remove();
   document.body.appendChild(s);
 }
 

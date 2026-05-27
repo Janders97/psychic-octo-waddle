@@ -1,79 +1,68 @@
 :root {
   --bg: #0f172a;
   --panel: #111827;
-  --panel-2: #0b1220;
+  --panel-2: #1f2937;
   --text: #e5e7eb;
-  --muted: #94a3b8;
-  --line: rgba(148, 163, 184, 0.18);
-  --accent: #60a5fa;
-  --accent-2: #22c55e;
+  --muted: #9ca3af;
+  --line: rgba(255,255,255,0.08);
+  --accent: #7c3aed;
 }
 
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 body {
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: radial-gradient(circle at top, #172554, var(--bg) 55%);
+  background: radial-gradient(1200px 700px at top, #1e293b 0%, var(--bg) 60%);
   color: var(--text);
 }
 
 .page {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 32px 20px 60px;
+  padding: 32px 20px 48px;
 }
 
 .hero {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 16px;
+  display: flex;
+  gap: 20px;
   align-items: end;
+  justify-content: space-between;
   margin-bottom: 24px;
 }
 
 .eyebrow {
   margin: 0 0 8px;
   text-transform: uppercase;
-  letter-spacing: 0.18em;
-  font-size: 12px;
+  letter-spacing: 0.12em;
   color: var(--muted);
+  font-size: 0.78rem;
 }
 
 h1 {
   margin: 0;
-  font-size: clamp(2.4rem, 4vw, 4.2rem);
-  line-height: 1;
+  font-size: clamp(2rem, 4vw, 3.5rem);
 }
 
 .subhead {
   margin: 10px 0 0;
   color: var(--muted);
-  max-width: 760px;
+  max-width: 700px;
 }
 
 .meta-card, .card {
-  background: linear-gradient(180deg, rgba(17,24,39,0.92), rgba(11,18,32,0.94));
+  background: rgba(17, 24, 39, 0.88);
   border: 1px solid var(--line);
-  box-shadow: 0 18px 60px rgba(0,0,0,0.28);
   border-radius: 20px;
+  box-shadow: 0 18px 50px rgba(0,0,0,0.25);
 }
 
 .meta-card {
-  padding: 18px 20px;
+  padding: 16px 18px;
   min-width: 220px;
 }
 
-.meta-label {
-  font-size: 12px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.meta-value {
-  font-weight: 700;
-  margin-top: 6px;
-}
+.meta-label { color: var(--muted); font-size: 0.85rem; }
+.meta-value { margin-top: 6px; font-size: 0.98rem; }
 
 .grid {
   display: grid;
@@ -84,10 +73,6 @@ h1 {
   padding: 18px;
 }
 
-.wide {
-  width: 100%;
-}
-
 .card-header {
   display: flex;
   align-items: center;
@@ -96,68 +81,61 @@ h1 {
   margin-bottom: 14px;
 }
 
-.card-header h2 {
+.card h2 {
   margin: 0;
   font-size: 1.15rem;
 }
 
 .pill {
-  font-size: 12px;
-  color: #bfdbfe;
-  border: 1px solid rgba(96,165,250,0.25);
-  background: rgba(96,165,250,0.08);
+  display: inline-flex;
+  align-items: center;
   padding: 6px 10px;
   border-radius: 999px;
+  background: rgba(124, 58, 237, 0.16);
+  color: #c4b5fd;
+  font-size: 0.8rem;
 }
 
-.table-wrap {
-  overflow: auto;
-  border-radius: 16px;
-  border: 1px solid var(--line);
-}
+.table-wrap { overflow-x: auto; }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 700px;
+  min-width: 680px;
 }
 
 th, td {
-  padding: 14px 12px;
+  padding: 12px 10px;
   border-bottom: 1px solid var(--line);
   text-align: left;
 }
 
 th {
-  color: #cbd5e1;
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  background: rgba(255,255,255,0.03);
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.88rem;
 }
 
-tbody tr:hover {
-  background: rgba(255,255,255,0.02);
-}
+td { font-size: 0.96rem; }
 
 .groups-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 14px;
 }
 
 .group-card {
-  background: rgba(15, 23, 42, 0.82);
+  background: rgba(31, 41, 55, 0.92);
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 18px;
   padding: 14px;
 }
 
 .group-title {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
+  align-items: center;
   margin-bottom: 10px;
 }
 
@@ -166,24 +144,23 @@ tbody tr:hover {
   font-size: 1rem;
 }
 
-.group-card ol {
+.muted { color: var(--muted); font-size: 0.82rem; }
+
+ol {
   margin: 0;
   padding-left: 20px;
-  color: var(--text);
 }
 
-.group-card li {
+li {
   margin: 8px 0;
-  color: #dbeafe;
+  color: #f3f4f6;
 }
 
-.group-card .muted {
-  color: var(--muted);
-  font-size: 12px;
-}
+.wide { width: 100%; }
 
 @media (max-width: 720px) {
   .hero {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
