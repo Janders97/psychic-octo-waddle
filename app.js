@@ -1,6 +1,6 @@
 const WEB_APP_URL = "https://script.google.com/a/macros/colorado.edu/s/AKfycbxaAxhKUIFgEDNw5hj7BY6--u3_eBc94mEhddaHCfdktHgcSOy259OZhqUg_pxn3xhD/exec";
-const PICKS_PUBLIC = false;
-const ENTRY_SHEET_URL = "PASTE_YOUR_GOOGLE_SHEET_URL_HERE";
+const PICKS_PUBLIC = true;
+const ENTRY_SHEET_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe6zAHK_tEozTJuD1ALQwpPjXFdB1jwwhkRT49sfI8YPoiqTw/viewform";
 
 const SAMPLE_DATA = {
   updatedAt: new Date().toISOString(),
