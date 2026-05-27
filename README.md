@@ -1,15 +1,22 @@
-# World Cup Pool Website
+# World Cup 2026 Pool
 
-This folder is the static GitHub Pages website.
+## Files
+- `index.html`
+- `styles.css`
+- `app.js`
+
+## What changed
+- Title updated to **World Cup 2026 Pool**
+- Branding updated to **Anderson Prediction Pool**
+- Added 🇨🇦 🇲🇽 🇺🇸 in the header
+- Leaderboard now shows points won / possible points
+- Added a private Participant Picks tab
+- Added a disclaimer in the footer
 
 ## What to edit
+In `app.js`:
+- replace `WEB_APP_URL` with your Google Apps Script web app URL
+- set `PICKS_PUBLIC = true` only when you want the participant picks tab to be visible
 
-Open `app.js` and paste your Apps Script web app URL into:
-
-```javascript
-const APPS_SCRIPT_WEB_APP_URL = "PASTE_YOUR_WEB_APP_URL_HERE";
-```
-
-## How it works
-
-The page loads live data from your Google Apps Script web app and refreshes every minute.
+## Notes
+The site is designed to read leaderboard data from your Apps Script web app every minute.

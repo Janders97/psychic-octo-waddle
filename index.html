@@ -1,56 +1,145 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>World Cup Pool</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>World Cup 2026 Pool</title>
+  <meta name="description" content="Anderson Prediction Pool for World Cup 2026." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="page">
+  <div class="page-shell">
     <header class="hero">
-      <div>
-        <p class="eyebrow">Private Prediction Pool</p>
-        <h1>World Cup Pool</h1>
-        <p class="subhead">Live leaderboard and actual group standings, refreshed every minute.</p>
+      <div class="hero__brand">
+        <div class="badge">Anderson Prediction Pool</div>
+        <h1>World Cup 2026 Pool</h1>
+        <p class="hero__subtitle">🇨🇦 🇲🇽 🇺🇸</p>
+        <p class="hero__copy">
+          Live group predictions, leaderboard standings, and private participant picks in one place.
+        </p>
       </div>
-      <div class="meta-card">
-        <div class="meta-label">Last updated</div>
-        <div id="updatedAt" class="meta-value">Waiting for data...</div>
+
+      <div class="hero__stats" id="summaryCards">
+        <div class="stat-card">
+          <span class="stat-card__label">Participants</span>
+          <strong id="statParticipants">—</strong>
+        </div>
+        <div class="stat-card">
+          <span class="stat-card__label">Top Score</span>
+          <strong id="statTopScore">—</strong>
+        </div>
+        <div class="stat-card">
+          <span class="stat-card__label">Last Updated</span>
+          <strong id="statUpdated">—</strong>
+        </div>
       </div>
     </header>
 
-    <main class="grid">
-      <section class="card wide">
-        <div class="card-header">
-          <h2>Leaderboard</h2>
-          <span class="pill">Auto-refreshing</span>
+    <nav class="tabs" aria-label="Site sections">
+      <button class="tab is-active" data-tab="leaderboard">Leaderboard</button>
+      <button class="tab" data-tab="picks">Participant Picks</button>
+      <button class="tab" data-tab="groups">Groups</button>
+      <button class="tab" data-tab="rules">Rules</button>
+    </nav>
+
+    <main>
+      <section class="panel is-visible" id="tab-leaderboard">
+        <div class="panel__header">
+          <div>
+            <h2>Leaderboard</h2>
+            <p>Scores update automatically from the Google Sheet feed.</p>
+          </div>
+          <button class="ghost-btn" id="refreshBtn">Refresh now</button>
         </div>
+
         <div class="table-wrap">
-          <table id="leaderboard">
+          <table class="leaderboard-table">
             <thead>
               <tr>
-                <th>Rank</th>
-                <th>Name</th>
+                <th>#</th>
+                <th>Participant</th>
+                <th>Points Won</th>
+                <th>Possible Points</th>
                 <th>Total</th>
                 <th>Perfect</th>
                 <th>Excellent</th>
                 <th>Good</th>
               </tr>
             </thead>
-            <tbody></tbody>
+            <tbody id="leaderboardBody">
+              <tr><td colspan="8" class="muted-cell">No scores loaded yet.</td></tr>
+            </tbody>
           </table>
         </div>
       </section>
 
-      <section class="card wide">
-        <div class="card-header">
-          <h2>Actual group standings</h2>
-          <span class="pill">Live / demo data</span>
+      <section class="panel" id="tab-picks">
+        <div class="panel__header">
+          <div>
+            <h2>Participant Picks</h2>
+            <p class="muted">This section is private for now.</p>
+          </div>
+          <span class="pill pill--locked">Locked</span>
         </div>
-        <div id="groups" class="groups-grid"></div>
+
+        <div class="locked-card">
+          <div class="locked-card__icon">🔒</div>
+          <div>
+            <h3>Hidden until you are ready to reveal it</h3>
+            <p>
+              The participant picks tab is set to private for the time being. When you are ready,
+              change <code>picksPublic</code> in <code>app.js</code> to <code>true</code>.
+            </p>
+          </div>
+        </div>
+
+        <div class="picks-grid" id="picksGrid" aria-hidden="true"></div>
+      </section>
+
+      <section class="panel" id="tab-groups">
+        <div class="panel__header">
+          <div>
+            <h2>Groups</h2>
+            <p>Current group-stage setup and sample standings.</p>
+          </div>
+        </div>
+        <div class="groups-grid" id="groupsGrid"></div>
+      </section>
+
+      <section class="panel" id="tab-rules">
+        <div class="panel__header">
+          <div>
+            <h2>Rules</h2>
+            <p>How the pool works.</p>
+          </div>
+        </div>
+
+        <div class="rules-card">
+          <h3>Group scoring</h3>
+          <ul>
+            <li>Exact position: 4 points</li>
+            <li>Off by 1 place: 1 point</li>
+            <li>Correct top 2 teams: +2 points</li>
+            <li>Perfect group order: +4 points</li>
+          </ul>
+        </div>
+
+        <div class="rules-card">
+          <h3>Privacy note</h3>
+          <p class="fine-print">
+            Private prediction pool not for commercial gain.
+          </p>
+        </div>
       </section>
     </main>
+
+    <footer class="site-footer">
+      <p>Private prediction pool not for commercial gain.</p>
+      <p class="muted">Anderson Prediction Pool · World Cup 2026</p>
+    </footer>
   </div>
 
   <script src="app.js"></script>
