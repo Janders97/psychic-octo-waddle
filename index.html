@@ -16,9 +16,9 @@
       <div class="hero__brand">
         <div class="badge">Anderson Prediction Pool</div>
         <h1>World Cup 2026 Pool</h1>
-        <p class="hero__subtitle">🇨🇦 🇲🇽 🇺🇸</p>
+        <p class="hero__subtitle">&#127464;&#127462; &#127474;&#127474; &#127482;&#127480;</p>
         <p class="hero__copy">
-          Live group and knockout standings, updated from the Google Sheet feed every minute.
+          Live standings, private picks, and minute-by-minute updates from the sheet feed.
         </p>
       </div>
 
@@ -30,7 +30,6 @@
         <div class="stat-card">
           <span class="stat-card__label">Top Score</span>
           <strong id="statTopScore">Connecting...</strong>
-          <div class="stat-card__subvalue" id="statTopScorer"></div>
         </div>
         <div class="stat-card">
           <span class="stat-card__label">Last Updated</span>
@@ -52,16 +51,15 @@
         <div class="panel__header">
           <div>
             <h2>Leaderboard</h2>
-            <p>Live standings from the Google Sheet feed.</p>
           </div>
-          <span class="pill" id="dataSourcePill">Connecting</span>
+          <span class="pill" id="dataSourcePill">connecting</span>
         </div>
 
         <section class="leaderboard-section">
           <div class="leaderboard-section__header">
             <div>
               <h3>Group Stage Leaderboard</h3>
-              <p>Points won / points possible, plus what is still mathematically left to chase.</p>
+              <p>Points won, total possible points, and a group-by-group breakdown.</p>
             </div>
           </div>
 
@@ -72,14 +70,15 @@
                   <th>#</th>
                   <th>Participant</th>
                   <th>Points</th>
-                  <th>Remaining</th>
+                  <th>Total Pts Possible</th>
+                  <th>Group Breakdown</th>
                   <th>Perfect</th>
                   <th>Excellent</th>
                   <th>Good</th>
                 </tr>
               </thead>
               <tbody id="groupLeaderboardBody">
-                <tr><td colspan="7" class="muted-cell">Connecting to live sheet data...</td></tr>
+                <tr><td colspan="8" class="muted-cell">Waiting for live group results.</td></tr>
               </tbody>
             </table>
           </div>
@@ -100,14 +99,16 @@
                   <th>#</th>
                   <th>Participant</th>
                   <th>Points</th>
-                  <th>Remaining</th>
-                  <th>Perfect</th>
-                  <th>Excellent</th>
-                  <th>Good</th>
+                  <th>Total Pts Possible</th>
+                  <th>Final</th>
+                  <th>Semi</th>
+                  <th>Quarter</th>
+                  <th>Round of 16</th>
+                  <th>Round of 32</th>
                 </tr>
               </thead>
               <tbody id="knockoutLeaderboardBody">
-                <tr><td colspan="7" class="muted-cell">Waiting for knockout scores...</td></tr>
+                <tr><td colspan="9" class="muted-cell">Waiting for knockout scores.</td></tr>
               </tbody>
             </table>
           </div>
@@ -124,7 +125,7 @@
         </div>
 
         <div class="locked-card">
-          <div class="locked-card__icon">🔒</div>
+          <div class="locked-card__icon">&#128274;</div>
           <div>
             <h3>Private for now</h3>
             <p>
@@ -140,14 +141,12 @@
         <div class="panel__header">
           <div>
             <h2>Groups</h2>
-            <p>Live group-stage standings from the sheet feed.</p>
+            <p>Live groups stage standings.</p>
           </div>
         </div>
         <div class="notice-card">
           <p>
-            These standings update automatically every minute. Once the tournament starts,
-            the table will follow the sheet feed. If a group becomes mathematically locked,
-            the possible points left in that group will shrink to match.
+            These standings update automatically every minute once live results are available.
           </p>
         </div>
         <div class="groups-grid" id="groupsGrid"></div>
@@ -162,11 +161,10 @@
         </div>
 
         <div class="rules-card">
-          <h3>Group stage: guess the order, not the scores</h3>
+          <h3>Group stage: guess the order, not the scorelines</h3>
           <p>
-            For each group, rank the four teams from 1st to 4th. You are only predicting the
-            finishing order. Exact placements are worth 4 points, near misses are worth 1,
-            the correct top two teams add 2, and a perfect group adds 4.
+            For each group, rank the four teams from 1st to 4th. You are only predicting the final group order, not the match-by-match scores.
+            Exact placements are worth 4 points, near misses are worth 1, the correct top two teams add 2, and a perfect group adds 4.
           </p>
           <ul>
             <li>Exact position: 4 points</li>
@@ -185,9 +183,8 @@
         <div class="rules-card">
           <h3>Knockout stage: build the bracket to the champion</h3>
           <p>
-            The knockout competition is separate from the group stage. Predict the bracket all the
-            way from the round of 32 to the winner. Each correct advance is weighted by the odds
-            at the time: harder, less likely calls are worth more; easy favorites are worth less.
+            The knockout competition is separate from the group stage. Predict the bracket all the way from the round of 32 to the winner.
+            Each correct advance is weighted by the odds at the time of prediction: harder, less likely calls are worth more; easy favorites are worth less.
             That keeps the contest skill-based without making it feel random.
           </p>
           <ul>
@@ -207,38 +204,47 @@
         <div class="panel__header">
           <div>
             <h2>Entry / Payouts</h2>
-            <p>Buy-in, prize split, and the live sheet link.</p>
+            <p>Buy-in, payout split, and entry details.</p>
           </div>
         </div>
 
         <div class="rules-card">
           <h3>Buy-in and split</h3>
           <ul>
-            <li>Buy-in: <strong>£20</strong></li>
+            <li>Buy-in: <strong>&pound;20 / $27</strong></li>
             <li>Group stage and knockout stage each receive <strong>50% of the total pot</strong></li>
-            <li>Suggested payout shape for each competition (with about 20 entrants): <strong>45% / 25% / 15% / 10% / 5%</strong></li>
+            <li>Tentative payout shape given 20 entrants: <strong>45% / 25% / 15% / 10% / 5%</strong></li>
           </ul>
           <p class="fine-print">
-            The exact payout structure can be adjusted once the final entrant count is known.
+            The exact payout structure may be adjusted once the final entrant count is known.
           </p>
-        </div>
-
-        <div class="rules-card">
-          <h3>Google Sheet link</h3>
-          <p>
-            Add the live entry sheet, notes, and any final payout details here.
-          </p>
-          <p>
-            <a class="sheet-link" id="entrySheetLink" href="#" target="_blank" rel="noreferrer">Open entry sheet</a>
-          </p>
-        </div>
-
-        <div class="rules-card">
-          <h3>Suggested payout summary</h3>
           <p class="fine-print">
-            A fair, simple split for each half-pot is: 1st 45%, 2nd 25%, 3rd 15%, 4th 10%, 5th 5%.
-            For 20 entrants, that keeps the pool top-heavy enough to feel meaningful while still paying a few places.
+            For 20 entrants, that would pay the top 5 in each competition.
           </p>
+        </div>
+
+        <div class="rules-card">
+          <h3>Live sheet link</h3>
+          <p>
+            Add the live Google Sheet link here, plus any final notes you want to share with entrants.
+          </p>
+          <p>
+            <a class="sheet-link" id="entrySheetLink" href="#" target="_blank" rel="noreferrer">Open live sheet</a>
+          </p>
+        </div>
+
+        <div class="detail-grid">
+          <div class="rules-card">
+            <h3><span class="mini-flag" aria-hidden="true">&#127468;&#127463;</span> UK bank details</h3>
+            <p>Add your UK bank details here for British entrants.</p>
+            <p class="detail-placeholder">Account name, sort code, account number, and payment reference.</p>
+          </div>
+
+          <div class="rules-card">
+            <h3><span class="mini-flag" aria-hidden="true">&#127482;&#127480;</span> US Venmo</h3>
+            <p>Add your Venmo details here for US entrants.</p>
+            <p class="detail-placeholder">@yourvenmohandle</p>
+          </div>
         </div>
       </section>
     </main>
