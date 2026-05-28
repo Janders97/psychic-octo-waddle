@@ -1,6 +1,6 @@
-const WEB_APP_URL = "PASTE_YOUR_DEPLOYED_WEB_APP_URL_HERE";
-const PICKS_PUBLIC = false;
-const ENTRY_SHEET_URL = "PASTE_YOUR_GOOGLE_SHEET_URL_HERE";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxsfUvyEG-WEu9_j92XcA9NtjnnoKlYynIcDmKqmzrdRoS_xa-ssMgjzg3uFdNfPu3P/exec";
+const PICKS_PUBLIC = true;
+const ENTRY_SHEET_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe6zAHK_tEozTJuD1ALQwpPjXFdB1jwwhkRT49sfI8YPoiqTw/viewform";
 
 const state = {
   leaderboardRows: [],
