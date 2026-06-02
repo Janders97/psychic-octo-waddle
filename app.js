@@ -1,6 +1,6 @@
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbynLb8d7RplA8Sm1NGfUSDstj9sALufH8KxRyZj56dosVU8FnHf7pkU7BcjVb71zvSp/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby4p5vNU7bX7gqUdom-zlQJUqciRKGSTsMz17hE3AYRxk41LwQEKD8rX5LuE4TU5etG/exec";
 const PICKS_PUBLIC = true;
-const ENTRY_SHEET_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe6zAHK_tEozTJuD1ALQwpPjXFdB1jwwhkRT49sfI8YPoiqTw/viewform";
+const ENTRY_SHEET_URL = "https://docs.google.com/forms/d/1dKa8TqqheI9dYqi99N_7soXXmYUKyPBoBrx3CJzU5aY/edit";
 
 const state = {
   leaderboardRows: [],
