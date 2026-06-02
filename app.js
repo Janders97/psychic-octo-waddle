@@ -1,5 +1,5 @@
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbynLb8d7RplA8Sm1NGfUSDstj9sALufH8KxRyZj56dosVU8FnHf7pkU7BcjVb71zvSp/exec";
-const PICKS_PUBLIC = false;
+const PICKS_PUBLIC = true;
 const ENTRY_SHEET_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe6zAHK_tEozTJuD1ALQwpPjXFdB1jwwhkRT49sfI8YPoiqTw/viewform";
 
 const state = {
@@ -26,8 +26,9 @@ function initTabs() {
       tabs.forEach(b => b.classList.remove("is-active"));
       btn.classList.add("is-active");
 
-      Object.values(panels).forEach(panel => panel.classList.remove("is-visible"));
-      panels[btn.dataset.tab].classList.add("is-visible");
+      Object.values(panels).forEach(panel => panel && panel.classList.remove("is-visible"));
+      const panel = panels[btn.dataset.tab];
+      if (panel) panel.classList.add("is-visible");
     });
   });
 }
@@ -75,6 +76,24 @@ function formatValue(value) {
   return String(value);
 }
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function parseOrdinal(value) {
+  const s = String(value || "").trim().toLowerCase();
+  if (s === "1st") return 1;
+  if (s === "2nd") return 2;
+  if (s === "3rd") return 3;
+  if (s === "4th") return 4;
+  return null;
+}
+
 function renderGroupLeaderboard(rows) {
   const tbody = document.getElementById("groupLeaderboardBody");
   if (!tbody) return;
@@ -102,10 +121,10 @@ function renderGroupLeaderboard(rows) {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${idx + 1}</td>
-      <td>${row["Leaderboard Name"] || row["Name"] || ""}</td>
+      <td>${escapeHtml(row["Leaderboard Name"] || row["Name"] || "")}</td>
       <td>${normalizeScore(row)}</td>
       <td>${formatValue(normalizePossible(row))}</td>
-      <td class="breakdown-cell">${formatValue(row["Group Breakdown"] ?? row["Breakdown"] ?? row["Group by Group"] ?? row["Group Breakdown "] ?? "")}</td>
+      <td class="breakdown-cell">${escapeHtml(formatValue(row["Group Breakdown"] ?? row["Breakdown"] ?? row["Group by Group"] ?? ""))}</td>
       <td>${Number(row["Perfect Groups"] ?? 0)}</td>
       <td>${Number(row["Excellent Groups"] ?? 0)}</td>
       <td>${Number(row["Good Groups"] ?? 0)}</td>
@@ -145,7 +164,7 @@ function renderKnockoutLeaderboard(rows) {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${idx + 1}</td>
-      <td>${row["Leaderboard Name"] || row["Name"] || ""}</td>
+      <td>${escapeHtml(row["Leaderboard Name"] || row["Name"] || "")}</td>
       <td>${normalizeScore(row)}</td>
       <td>${formatValue(normalizePossible(row))}</td>
       <td>${Number(row["Final"] ?? 0)}</td>
@@ -173,26 +192,83 @@ function renderGroups(groups) {
     card.className = "group-card";
     const ordered = [group["1st"], group["2nd"], group["3rd"], group["4th"]].filter(Boolean);
     card.innerHTML = `
-      <h4>${group.Group || group.group || "Group"}</h4>
+      <h4>${escapeHtml(group.Group || group.group || "Group")}</h4>
       <ol>
-        ${ordered.map(team => `<li>${team}</li>`).join("")}
+        ${ordered.map(team => `<li>${escapeHtml(team)}</li>`).join("")}
       </ol>
     `;
     grid.appendChild(card);
   });
 }
 
+function groupPicksFromRow(row) {
+  const groups = new Map();
+
+  Object.entries(row).forEach(([key, value]) => {
+    const header = String(key || "").trim();
+    const match = header.match(/^Group\s+([A-L])\s*\[(.+)\]$/i);
+    if (!match) return;
+
+    const groupLetter = match[1].toUpperCase();
+    const teamName = String(match[2] || "").trim();
+    const place = parseOrdinal(value);
+
+    if (!groups.has(groupLetter)) groups.set(groupLetter, []);
+    groups.get(groupLetter).push({ teamName, place });
+  });
+
+  return [...groups.entries()].map(([groupLetter, picks]) => ({
+    groupLetter,
+    picks: picks.sort((a, b) => (a.place || 99) - (b.place || 99) || a.teamName.localeCompare(b.teamName))
+  }));
+}
+
 function renderPicks() {
   const grid = document.getElementById("picksGrid");
+  const locked = document.getElementById("picksLockedCard");
   if (!grid) return;
+
   grid.innerHTML = "";
 
   if (!PICKS_PUBLIC) {
-    grid.innerHTML = '';
+    grid.setAttribute("aria-hidden", "true");
+    grid.innerHTML = "";
+    if (locked) locked.style.display = "grid";
     return;
   }
 
-  grid.innerHTML = '<div class="notice-card"><p>Participant picks are ready to be revealed later.</p></div>';
+  if (locked) locked.style.display = "none";
+  grid.setAttribute("aria-hidden", "false");
+
+  const rows = state.picksRows || [];
+  if (!rows.length) {
+    grid.innerHTML = '<div class="notice-card"><p>No participant picks available yet.</p></div>';
+    return;
+  }
+
+  rows.forEach(row => {
+    const name = row["Leaderboard Name"] || row["Name"] || row["Full Name"] || "Participant";
+    const timestamp = row["Timestamp"] || row["Time"] || "";
+    const groups = groupPicksFromRow(row);
+
+    const card = document.createElement("article");
+    card.className = "pick-card";
+    card.innerHTML = `
+      <h4>${escapeHtml(name)}</h4>
+      <p class="pick-meta">${escapeHtml(timestamp)}</p>
+      <div class="pick-groups">
+        ${groups.map(group => `
+          <div class="pick-group">
+            <h5>Group ${escapeHtml(group.groupLetter)}</h5>
+            <ol>
+              ${group.picks.map(pick => `<li>${escapeHtml(pick.place ? `${pick.place} — ${pick.teamName}` : pick.teamName)}</li>`).join("")}
+            </ol>
+          </div>
+        `).join("")}
+      </div>
+    `;
+    grid.appendChild(card);
+  });
 }
 
 function applyData(payload, isLive) {
