@@ -1,5 +1,5 @@
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbynLb8d7RplA8Sm1NGfUSDstj9sALufH8KxRyZj56dosVU8FnHf7pkU7BcjVb71zvSp/exec";
-const PICKS_PUBLIC = false;
+const PICKS_PUBLIC = true;
 const ENTRY_SHEET_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe6zAHK_tEozTJuD1ALQwpPjXFdB1jwwhkRT49sfI8YPoiqTw/viewform";
 
 const state = {
@@ -73,6 +73,24 @@ function renderSummary(rows) {
 function formatValue(value) {
   if (value === null || value === undefined || value === "") return "-";
   return String(value);
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function placeRank(value) {
+  const s = String(value ?? "").trim().toLowerCase();
+  if (s === "1st") return 1;
+  if (s === "2nd") return 2;
+  if (s === "3rd") return 3;
+  if (s === "4th") return 4;
+  return 99;
 }
 
 function renderGroupLeaderboard(rows) {
@@ -182,83 +200,82 @@ function renderGroups(groups) {
   });
 }
 
-function normalizePlace(value) {
-  const s = String(value || "").trim().toLowerCase();
-  if (s === "1st") return 1;
-  if (s === "2nd") return 2;
-  if (s === "3rd") return 3;
-  if (s === "4th") return 4;
-  return null;
-}
-
 function renderPicks() {
   const grid = document.getElementById("picksGrid");
+  const notice = document.getElementById("picksNotice");
   const pill = document.getElementById("picksStatePill");
   if (!grid) return;
 
-  if (pill) {
-    pill.textContent = PICKS_PUBLIC ? "Public" : "Private";
-    pill.classList.toggle("pill--locked", !PICKS_PUBLIC);
-  }
+  const setPublicState = (isPublic) => {
+    if (pill) {
+      pill.textContent = isPublic ? "Public" : "Private";
+      pill.className = isPublic ? "pill" : "pill pill--locked";
+    }
+  };
 
+  setPublicState(PICKS_PUBLIC);
   grid.innerHTML = "";
 
   if (!PICKS_PUBLIC) {
-    grid.innerHTML = '<div class="notice-card"><p>Participant picks are private for now.</p></div>';
+    if (notice) notice.innerHTML = '<p>Participant picks are private for now.</p>';
+    grid.setAttribute("aria-hidden", "true");
     return;
   }
 
-  const rows = [...(state.picksRows || [])].filter(Boolean);
-  if (!rows.length) {
-    grid.innerHTML = '<div class="notice-card"><p>No participant picks received yet.</p></div>';
-    return;
+  const entrants = (state.picksRows || [])
+    .filter(row => String(row["Leaderboard Name"] || row["Name"] || "").trim())
+    .sort((a, b) => String(a["Leaderboard Name"] || a["Name"] || "").localeCompare(String(b["Leaderboard Name"] || b["Name"] || "")));
+
+  grid.removeAttribute("aria-hidden");
+
+  if (notice) {
+    notice.innerHTML = entrants.length
+      ? `<p>Showing submitted predictions for ${entrants.length} entrant${entrants.length === 1 ? "" : "s"}.</p>`
+      : '<p>No participant picks have been submitted yet.</p>';
   }
 
-  const sortedRows = rows.sort((a, b) => String(a["Leaderboard Name"] || a["Name"] || "").localeCompare(String(b["Leaderboard Name"] || b["Name"] || "")));
+  if (!entrants.length) return;
 
-  sortedRows.forEach(row => {
-    const name = String(row["Leaderboard Name"] || row["Name"] || "").trim() || "Unnamed entrant";
-    const groupMap = new Map();
+  grid.innerHTML = entrants.map(row => {
+    const name = escapeHtml(String(row["Leaderboard Name"] || row["Name"] || ""));
+    const groups = {};
 
     Object.entries(row).forEach(([key, value]) => {
-      const match = String(key || "").trim().match(/^Group\s+([A-L])\s*\[(.+?)\]\s*$/i);
+      const match = String(key).match(/^Group\s+([A-L])\s*\[(.+?)\]\s*$/i);
       if (!match) return;
-
       const groupLetter = match[1].toUpperCase();
       const team = String(match[2] || "").trim();
-      const place = normalizePlace(value);
-      if (!groupMap.has(groupLetter)) groupMap.set(groupLetter, []);
-      groupMap.get(groupLetter).push({ team, place });
+      const place = String(value || "").trim();
+      if (!place) return;
+      if (!groups[groupLetter]) groups[groupLetter] = [];
+      groups[groupLetter].push({ team, place });
     });
 
-    const card = document.createElement("article");
-    card.className = "pick-card";
+    const sortedGroups = Object.keys(groups).sort();
+    const groupMarkup = sortedGroups.map(groupLetter => {
+      const entries = groups[groupLetter].slice().sort((a, b) => placeRank(a.place) - placeRank(b.place) || a.team.localeCompare(b.team));
+      return `
+        <article class="pick-group-card">
+          <h5>Group ${groupLetter}</h5>
+          <ol>
+            ${entries.map(item => `<li><span class="pick-place">${escapeHtml(item.place)}</span> ${escapeHtml(item.team)}</li>`).join("")}
+          </ol>
+        </article>
+      `;
+    }).join("");
 
-    const groupHtml = [...groupMap.entries()]
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([groupLetter, picks]) => {
-        const lines = picks
-          .sort((a, b) => (a.place || 99) - (b.place || 99) || a.team.localeCompare(b.team))
-          .map(p => `<li>${p.place || "-"} — ${p.team}</li>`)
-          .join("");
-
-        return `
-          <div class="pick-card__group">
-            <strong>Group ${groupLetter}</strong>
-            <ul>${lines}</ul>
-          </div>
-        `;
-      })
-      .join("");
-
-    card.innerHTML = `
-      <h4>${name}</h4>
-      <div class="pick-card__meta">${groupMap.size} groups submitted</div>
-      <div class="pick-card__groups">${groupHtml}</div>
+    return `
+      <article class="pick-card">
+        <div class="pick-card__head">
+          <h4>${name}</h4>
+          <p class="pick-meta">${sortedGroups.length} group${sortedGroups.length === 1 ? "" : "s"} submitted</p>
+        </div>
+        <div class="pick-groups">
+          ${groupMarkup}
+        </div>
+      </article>
     `;
-
-    grid.appendChild(card);
-  });
+  }).join("");
 }
 
 function applyData(payload, isLive) {
