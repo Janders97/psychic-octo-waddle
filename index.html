@@ -17,8 +17,7 @@
         <div class="badge">Anderson Prediction Pool</div>
         <h1>World Cup 2026 Pool</h1>
         <p class="hero__subtitle">&#127464;&#127462; &#127474;&#127485; &#127482;&#127480;</p>
-        <p class="hero__copy">Scores on the Doors</p>
-        <p class="hero__copy">Minute-by-minute updates</p>
+        <p class="hero__copy">Scores on the doors, updated minute by minute.</p>
       </div>
 
       <div class="hero__stats" id="summaryCards">
@@ -58,7 +57,7 @@
           <div class="leaderboard-section__header">
             <div>
               <h3>Group Stage Leaderboard</h3>
-              <p>Points won, total possible points, and a group-by-group breakdown.</p>
+              <p>Points won, total points possible from active groups, and a group-by-group breakdown.</p>
             </div>
           </div>
 
@@ -134,7 +133,7 @@
           </div>
         </div>
         <div class="notice-card">
-          <p>Live groups stage standings.</p>
+          <p>These standings update automatically every minute once live results are available.</p>
         </div>
         <div class="groups-grid" id="groupsGrid"></div>
       </section>
@@ -143,17 +142,15 @@
         <div class="panel__header">
           <div>
             <h2>Rules</h2>
-            <p>How the pool works.</p>
-            <p>Group stage and knockout stage are separate competitions.</p>
-            <p>Each competition gets 50% of the total pot.</p>
+            <p>Two separate competitions. Two separate prize pools.</p>
           </div>
         </div>
 
         <div class="rules-card">
           <h3>Group stage: guess the order, not the scorelines</h3>
           <p>
-            For each group, rank the four teams from 1st to 4th. You are only predicting the final group order, not the match-by-match scores.
-            Exact placements are worth 4 points, near misses are worth 2 points, and two places off are worth 1 point. A perfect group adds 4 points.
+            For each group, rank the four teams from 1st to 4th. You are only predicting the final group order.
+            The scoring is built to reward solid reads without making the pool too swingy.
           </p>
           <ul>
             <li>Exact position: 4 points</li>
@@ -161,29 +158,23 @@
             <li>Off by 2 places: 1 point</li>
             <li>Perfect group order: +4 points</li>
           </ul>
-          <p class="fine-print">
-            Max per group: 20 points. Tranches: Perfect = 20, Excellent = 17-20, Good = 12-16.
-          </p>
-          <p class="fine-print">
-            Group stage tiebreakers: most perfect groups, then most excellent groups, then most good groups, then most exact placements.
-          </p>
+          <p class="fine-print">Max per active group: 20 points. Tranches: Perfect = 20, Excellent = 17-19, Good = 12-16.</p>
+          <p class="fine-print">Group stage tiebreakers: most perfect groups, then most excellent groups, then most good groups, then most exact placements.</p>
         </div>
 
         <div class="rules-card">
           <h3>Knockout stage: build the bracket to the champion</h3>
           <p>
             The knockout competition is separate from the group stage. Predict the bracket all the way from the round of 32 to the winner.
-            Each correct advance is weighted by the odds at the time of prediction: harder, less likely calls are worth more; easy favorites are worth less.
-            That keeps the contest skill-based without making it feel random.
+            Each correct advance is weighted by the odds at the time of prediction. Harder, less likely calls are worth more;
+            safer favorites are worth less. Every advance is scored on its own, so the bracket still rewards consistency.
           </p>
           <ul>
             <li>Predict the whole bracket through to the winner</li>
             <li>Odds-weighted scoring rewards bolder picks</li>
             <li>Each correct advance pick is scored on its own</li>
           </ul>
-          <p class="fine-print">
-            Knockout tiebreakers: most points in the final, then semifinal, then quarterfinal, then round of 16, then round of 32.
-          </p>
+          <p class="fine-print">Knockout tiebreakers: most points in the final, then semifinal, then quarterfinal, then round of 16, then round of 32.</p>
         </div>
       </section>
 
@@ -202,19 +193,13 @@
             <li>Group stage and knockout stage each receive <strong>50% of the total pot</strong></li>
             <li>Tentative payout shape given 20 entrants: <strong>45% / 25% / 15% / 10% / 5%</strong></li>
           </ul>
-          <p class="fine-print">
-            The exact payout structure may be adjusted once the final entrant count is known.
-          </p>
-          <p class="fine-print">
-            For example, 20 entrants might pay the top 5 in each competition.
-          </p>
+          <p class="fine-print">The exact payout structure may be adjusted once the final entrant count is known.</p>
+          <p class="fine-print">For example, 20 entrants might pay the top 5 in each competition.</p>
         </div>
 
         <div class="rules-card">
-          <h3>Group Stage Entry Link</h3>
-          <p>
-            <a class="sheet-link" id="entrySheetLink" href="#" target="_blank" rel="noreferrer">Open live sheet</a>
-          </p>
+          <h3>Entry form</h3>
+          <p><a class="sheet-link" id="entrySheetLink" href="#" target="_blank" rel="noreferrer">Open entry form</a></p>
         </div>
       </section>
     </main>

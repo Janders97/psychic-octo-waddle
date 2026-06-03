@@ -1,4 +1,4 @@
-const WEB_APP_URL = "https://script.google.com/macros/s/PASTE_YOUR_DEPLOYED_WEB_APP_URL_HERE/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbynLb8d7RplA8Sm1NGfUSDstj9sALufH8KxRyZj56dosVU8FnHf7pkU7BcjVb71zvSp/exec";
 const PICKS_PUBLIC = true;
 const ENTRY_SHEET_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe6zAHK_tEozTJuD1ALQwpPjXFdB1jwwhkRT49sfI8YPoiqTw/viewform";
 
@@ -27,8 +27,7 @@ function initTabs() {
       btn.classList.add("is-active");
 
       Object.values(panels).forEach(panel => panel.classList.remove("is-visible"));
-      const panel = panels[btn.dataset.tab];
-      if (panel) panel.classList.add("is-visible");
+      panels[btn.dataset.tab].classList.add("is-visible");
     });
   });
 }
@@ -38,7 +37,7 @@ function normalizeScore(row) {
 }
 
 function normalizePossible(row) {
-  const possible = row["Total Pts Possible"] ?? row["Points Possible"] ?? row["Possible Points"];
+  const possible = row["Points Possible"] ?? row["Total Pts Possible"] ?? row["Possible Points"];
   if (possible === null || possible === undefined || possible === "") return null;
   return Number(possible);
 }
@@ -106,7 +105,7 @@ function renderGroupLeaderboard(rows) {
       <td>${row["Leaderboard Name"] || row["Name"] || ""}</td>
       <td>${normalizeScore(row)}</td>
       <td>${formatValue(normalizePossible(row))}</td>
-      <td class="breakdown-cell">${formatValue(row["Group Breakdown"] ?? row["Breakdown"] ?? row["Group by Group"] ?? row["Group Breakdown "] ?? "")}</td>
+      <td class="breakdown-cell">${formatValue(row["Group Breakdown"] ?? row["Breakdown"] ?? row["Group by Group"] ?? "")}</td>
       <td>${Number(row["Perfect Groups"] ?? 0)}</td>
       <td>${Number(row["Excellent Groups"] ?? 0)}</td>
       <td>${Number(row["Good Groups"] ?? 0)}</td>
@@ -159,15 +158,6 @@ function renderKnockoutLeaderboard(rows) {
   });
 }
 
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
 function renderGroups(groups) {
   const grid = document.getElementById("groupsGrid");
   if (!grid) return;
@@ -182,14 +172,30 @@ function renderGroups(groups) {
     const card = document.createElement("article");
     card.className = "group-card";
     const ordered = [group["1st"], group["2nd"], group["3rd"], group["4th"]].filter(Boolean);
+    const label = group.Group || group.group || "Group";
+    const active = String(group.Active || group.active || "").toLowerCase() === "yes";
     card.innerHTML = `
-      <h4>${escapeHtml(group.Group || group.group || "Group")}</h4>
+      <h4>${label}${active ? ' <span style="color:#8df5c7;font-size:.82em;">(live)</span>' : ''}</h4>
       <ol>
-        ${ordered.map(team => `<li>${escapeHtml(team)}</li>`).join("")}
+        ${ordered.map(team => `<li>${team}</li>`).join("")}
       </ol>
     `;
     grid.appendChild(card);
   });
+}
+
+function extractPicks(entry) {
+  const groups = {};
+  Object.keys(entry).forEach(key => {
+    const match = key.match(/^Group\s+([A-L])\s*\[(.+?)\s*\]\s*$/i);
+    if (!match) return;
+    const groupLetter = match[1].toUpperCase();
+    const teamName = match[2].trim();
+    const place = String(entry[key] || "").trim();
+    if (!groups[groupLetter]) groups[groupLetter] = [];
+    groups[groupLetter].push({ team: teamName, place });
+  });
+  return groups;
 }
 
 function placeRank(place) {
@@ -203,13 +209,12 @@ function placeRank(place) {
 
 function renderPicks() {
   const grid = document.getElementById("picksGrid");
-  if (!grid) return;
-
   const pill = document.getElementById("picksStatePill");
   if (pill) {
     pill.textContent = PICKS_PUBLIC ? "Public" : "Private";
     pill.className = PICKS_PUBLIC ? "pill" : "pill pill--locked";
   }
+  if (!grid) return;
 
   grid.innerHTML = "";
 
@@ -218,59 +223,38 @@ function renderPicks() {
     return;
   }
 
-  const entries = (state.picksRows || []).filter(row => {
-    const name = String(row["Leaderboard Name"] || row["Name"] || "").trim();
-    return !!name;
-  });
+  const entries = (state.picksRows || []).filter(row => String(row["Leaderboard Name"] || row["Name"] || "").trim());
 
   if (!entries.length) {
     grid.innerHTML = '<div class="notice-card"><p>No participant picks have been submitted yet.</p></div>';
     return;
   }
 
-  entries.sort((a, b) => {
-    const aName = String(a["Leaderboard Name"] || a["Name"] || "");
-    const bName = String(b["Leaderboard Name"] || b["Name"] || "");
-    return aName.localeCompare(bName);
-  });
+  entries.sort((a, b) => String(a["Leaderboard Name"] || a["Name"] || "").localeCompare(String(b["Leaderboard Name"] || b["Name"] || "")));
 
   entries.forEach(entry => {
     const name = String(entry["Leaderboard Name"] || entry["Name"] || "Unknown").trim();
-
-    const grouped = {};
-    Object.keys(entry).forEach(key => {
-      const match = key.match(/^Group\s+([A-L])\s*\[(.+?)\s*\]$/i);
-      if (!match) return;
-
-      const groupLetter = match[1].toUpperCase();
-      const team = match[2].trim();
-      const place = String(entry[key] || "").trim();
-
-      if (!grouped[groupLetter]) grouped[groupLetter] = [];
-      grouped[groupLetter].push({ team, place });
-    });
+    const grouped = extractPicks(entry);
 
     const groupCards = Object.keys(grouped).sort().map(groupLetter => {
       const picks = grouped[groupLetter]
         .sort((a, b) => placeRank(a.place) - placeRank(b.place))
-        .map(item => `<li><strong>${escapeHtml(item.place)}</strong> — ${escapeHtml(item.team)}</li>`)
+        .map(item => `<li><strong>${item.place}</strong> — ${item.team}</li>`)
         .join("");
 
       return `
-        <div class="group-card">
-          <h4>Group ${escapeHtml(groupLetter)}</h4>
+        <div class="pick-group">
+          <h4>Group ${groupLetter}</h4>
           <ol>${picks}</ol>
         </div>
       `;
     }).join("");
 
     const card = document.createElement("article");
-    card.className = "rules-card";
+    card.className = "entrant-card";
     card.innerHTML = `
-      <h3>${escapeHtml(name)}</h3>
-      <div class="groups-grid">
-        ${groupCards}
-      </div>
+      <h3 class="entrant-card__name">${name}</h3>
+      <div class="entrant-groups">${groupCards}</div>
     `;
     grid.appendChild(card);
   });
