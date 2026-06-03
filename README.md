@@ -1,26 +1,21 @@
-# World Cup 2026 Pool
+# World Cup 2026 Pool v9
 
-## Website files
+## Files
 - `index.html`
 - `styles.css`
 - `app.js`
-
-## Apps Script file
 - `called.gs`
 
-## What to change
+## What to edit
+1. In `app.js`, paste your Apps Script web app `/exec` URL into `WEB_APP_URL`.
+2. In `called.gs`, paste your Google Sheet ID into `SPREADSHEET_ID`.
 
-1. Open `app.js`
-2. Paste your Apps Script web app URL into `WEB_APP_URL`
-3. Paste your Google Sheet URL into `ENTRY_SHEET_URL`
-4. Set `PICKS_PUBLIC = true` to show participant picks, or `false` to hide them
+## Picks tab
+- Set `PICKS_PUBLIC = true` to show submissions.
+- Set it to `false` to hide them.
 
-## Live data flow
-- Google Form responses land in the Sheet
-- Apps Script updates the leaderboard every minute
-- The website reads the live data feed every minute
-
-## Notes
-- The participant picks tab can be toggled public/private in `app.js`
-- The site is built for live sheet data only; no sample leaderboard data is embedded
-- The bank details section has been removed from the site
+## Apps Script sheets expected
+- `Form Responses 1`
+- `Leaderboard`
+- `Knockout Leaderboard`
+- `Current Standings` or `Actual Groups`
