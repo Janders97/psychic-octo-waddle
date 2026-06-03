@@ -1,4 +1,4 @@
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxvsLskjgFYZ8mRWfvr-j5I1bY96L8sINlRjq4_P6Yyoj66DtvoDXi2osJgEZmIlauC/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyVswcHszJ8Mod7kqVEBO37pheXIFL8otEsbNT4e6EufQLVBm9VB-Qv1Jc543uHel6s/exec";
 const PICKS_PUBLIC = true;
 const ENTRY_SHEET_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe6zAHK_tEozTJuD1ALQwpPjXFdB1jwwhkRT49sfI8YPoiqTw/viewform";
 
