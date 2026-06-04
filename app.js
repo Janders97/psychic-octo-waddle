@@ -1,4 +1,4 @@
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyVswcHszJ8Mod7kqVEBO37pheXIFL8otEsbNT4e6EufQLVBm9VB-Qv1Jc543uHel6s/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbynLb8d7RplA8Sm1NGfUSDstj9sALufH8KxRyZj56dosVU8FnHf7pkU7BcjVb71zvSp/exec";
 const PICKS_PUBLIC = true;
 const ENTRY_SHEET_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe6zAHK_tEozTJuD1ALQwpPjXFdB1jwwhkRT49sfI8YPoiqTw/viewform";
 
@@ -37,7 +37,7 @@ function normalizeScore(row) {
 }
 
 function normalizePossible(row) {
-  const possible = row["Points Possible"] ?? row["Total Pts Possible"] ?? row["Possible Points"];
+  const possible = row["Total Pts Possible"] ?? row["Points Possible"] ?? row["Possible Points"];
   if (possible === null || possible === undefined || possible === "") return null;
   return Number(possible);
 }
@@ -105,7 +105,7 @@ function renderGroupLeaderboard(rows) {
       <td>${row["Leaderboard Name"] || row["Name"] || ""}</td>
       <td>${normalizeScore(row)}</td>
       <td>${formatValue(normalizePossible(row))}</td>
-      <td class="breakdown-cell">${formatValue(row["Group Breakdown"] ?? row["Breakdown"] ?? row["Group by Group"] ?? "")}</td>
+      <td class="breakdown-cell">${formatValue(row["Group Breakdown"] ?? row["Breakdown"] ?? row["Group by Group"] ?? row["Group Breakdown "] ?? "")}</td>
       <td>${Number(row["Perfect Groups"] ?? 0)}</td>
       <td>${Number(row["Excellent Groups"] ?? 0)}</td>
       <td>${Number(row["Good Groups"] ?? 0)}</td>
@@ -168,34 +168,61 @@ function renderGroups(groups) {
     return;
   }
 
-  groups.forEach(group => {
+  const grouped = {};
+  groups.forEach(row => {
+    const groupName = String(row.Group || row.group || "").trim();
+    if (!groupName) return;
+    if (!grouped[groupName]) grouped[groupName] = [];
+    grouped[groupName].push(row);
+  });
+
+  Object.keys(grouped).sort().forEach(groupName => {
+    const rows = grouped[groupName].slice().sort((a, b) => Number(a.Rank || 0) - Number(b.Rank || 0));
+    const active = rows.every(r => String(r.Active || "").toLowerCase() === "yes" || Number(r.P || 0) > 0);
+
     const card = document.createElement("article");
     card.className = "group-card";
-    const ordered = [group["1st"], group["2nd"], group["3rd"], group["4th"]].filter(Boolean);
-    const label = group.Group || group.group || "Group";
-    const active = String(group.Active || group.active || "").toLowerCase() === "yes";
+
+    const tableRows = rows.map(r => `
+      <tr>
+        <td>${Number(r.Rank || 0)}</td>
+        <td>${r.Team || ""}</td>
+        <td>${Number(r.P || 0)}</td>
+        <td>${Number(r.W || 0)}</td>
+        <td>${Number(r.D || 0)}</td>
+        <td>${Number(r.L || 0)}</td>
+        <td>${Number(r.GF || 0)}</td>
+        <td>${Number(r.GA || 0)}</td>
+        <td>${Number(r.GD || 0)}</td>
+        <td>${Number(r.Pts || 0)}</td>
+      </tr>
+    `).join("");
+
     card.innerHTML = `
-      <h4>${label}${active ? ' <span style="color:#8df5c7;font-size:.82em;">(live)</span>' : ''}</h4>
-      <ol>
-        ${ordered.map(team => `<li>${team}</li>`).join("")}
-      </ol>
+      <h4>${groupName} ${active ? '<span class="pill" style="margin-left:8px; padding:4px 10px;">Live</span>' : ''}</h4>
+      <div class="table-wrap">
+        <table class="leaderboard-table standings-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Team</th>
+              <th>P</th>
+              <th>W</th>
+              <th>D</th>
+              <th>L</th>
+              <th>GF</th>
+              <th>GA</th>
+              <th>GD</th>
+              <th>Pts</th>
+            </tr>
+          </thead>
+          <tbody>${tableRows}</tbody>
+        </table>
+      </div>
     `;
+
     grid.appendChild(card);
   });
-}
-
-function extractPicks(entry) {
-  const groups = {};
-  Object.keys(entry).forEach(key => {
-    const match = key.match(/^Group\s+([A-L])\s*\[(.+?)\s*\]\s*$/i);
-    if (!match) return;
-    const groupLetter = match[1].toUpperCase();
-    const teamName = match[2].trim();
-    const place = String(entry[key] || "").trim();
-    if (!groups[groupLetter]) groups[groupLetter] = [];
-    groups[groupLetter].push({ team: teamName, place });
-  });
-  return groups;
 }
 
 function placeRank(place) {
@@ -209,24 +236,24 @@ function placeRank(place) {
 
 function renderPicks() {
   const grid = document.getElementById("picksGrid");
+  if (!grid) return;
+  grid.innerHTML = "";
+
   const pill = document.getElementById("picksStatePill");
   if (pill) {
     pill.textContent = PICKS_PUBLIC ? "Public" : "Private";
     pill.className = PICKS_PUBLIC ? "pill" : "pill pill--locked";
   }
-  if (!grid) return;
-
-  grid.innerHTML = "";
 
   if (!PICKS_PUBLIC) {
-    grid.innerHTML = '<div class="notice-card"><p>Participant picks are currently private.</p></div>';
+    grid.innerHTML = '<div class="notice-card"><p>Participant predictions are currently private.</p></div>';
     return;
   }
 
   const entries = (state.picksRows || []).filter(row => String(row["Leaderboard Name"] || row["Name"] || "").trim());
 
   if (!entries.length) {
-    grid.innerHTML = '<div class="notice-card"><p>No participant picks have been submitted yet.</p></div>';
+    grid.innerHTML = '<div class="notice-card"><p>No participant predictions have been submitted yet.</p></div>';
     return;
   }
 
@@ -234,7 +261,17 @@ function renderPicks() {
 
   entries.forEach(entry => {
     const name = String(entry["Leaderboard Name"] || entry["Name"] || "Unknown").trim();
-    const grouped = extractPicks(entry);
+    const grouped = {};
+
+    Object.keys(entry).forEach(key => {
+      const match = key.match(/^Group\s+([A-L])\s*\[(.+?)\s*\]$/i);
+      if (!match) return;
+      const groupLetter = match[1].toUpperCase();
+      const team = match[2].trim();
+      const place = String(entry[key] || "").trim();
+      if (!grouped[groupLetter]) grouped[groupLetter] = [];
+      grouped[groupLetter].push({ team, place });
+    });
 
     const groupCards = Object.keys(grouped).sort().map(groupLetter => {
       const picks = grouped[groupLetter]
@@ -243,18 +280,20 @@ function renderPicks() {
         .join("");
 
       return `
-        <div class="pick-group">
+        <article class="group-card">
           <h4>Group ${groupLetter}</h4>
           <ol>${picks}</ol>
-        </div>
+        </article>
       `;
     }).join("");
 
     const card = document.createElement("article");
-    card.className = "entrant-card";
+    card.className = "rules-card";
     card.innerHTML = `
-      <h3 class="entrant-card__name">${name}</h3>
-      <div class="entrant-groups">${groupCards}</div>
+      <h3>${name}</h3>
+      <div class="groups-grid">
+        ${groupCards}
+      </div>
     `;
     grid.appendChild(card);
   });
