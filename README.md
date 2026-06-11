@@ -7,8 +7,8 @@
 - `called.gs`
 
 ## What this version does
-- pulls the current standings from FIFA's official standings page
-- shows the groups on the website even before matches are played
+- pulls live standings from FIFA's JSON match feed
+- shows the 12 groups on the website even before matches are played
 - scores the group stage only when all four teams in a group have played at least one match
 - shows submitted predictions using the `Leaderboard Name` field
 - updates every minute
@@ -28,5 +28,5 @@
 - Keep `PICKS_PUBLIC = true` to show submitted predictions.
 
 ## Notes
-- The site uses the live FIFA standings feed instead of simulated data.
-- If FIFA changes the page format, the standings parser may need a small update.
+- The site uses FIFA's calendar/matches JSON endpoint instead of scraping the standings page HTML.
+- If FIFA changes the feed shape, the standings parser may need a small update.
