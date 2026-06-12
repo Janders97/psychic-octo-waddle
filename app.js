@@ -1,7 +1,7 @@
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 // Only change these two lines if your URLs change.
 
-const WEB_APP_URL   = "https://script.google.com/macros/s/AKfycbwma1amO7MpFOumczenrduGV9vFA4jEGV1StOCNC3R5LbiH4OarBuFeHd8fLmjuhvk/exec";
+const WEB_APP_URL   = "https://script.google.com/macros/s/AKfycbyn--oTk5mETYlr7YGsWUjWEc5Ds7RhV0Vy5m0ZglqQtZfT4VcLwtu-y0BVpyBCFH-n/exec";
 const ENTRY_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe6zAHK_tEozTJuD1ALQwpPjXFdB1jwwhkRT49sfI8YPoiqTw/viewform";
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
@@ -38,26 +38,17 @@ function initTabs() {
 // ─── SUMMARY BAR ─────────────────────────────────────────────────────────────
 
 function renderSummary() {
-  // Participant count = form responses
+  const rows = state.leaderboardRows.length ? state.leaderboardRows : state.knockoutRows;
+
+  // Participant count = form responses (picksRows is always the raw submissions)
   const participantCount = (state.picksRows || []).filter(r =>
     String(r["Leaderboard Name"] || r["Name"] || "").trim()
   ).length;
 
-  // Sort the leaderboard rows the same way as the table, then take the top entry.
-  // This prevents a mismatch where the table shows one person at #1 and the
-  // summary card shows a different person with the same score.
-  const baseRows = state.leaderboardRows.length ? state.leaderboardRows : state.knockoutRows;
-  const sortedRows = [...baseRows].sort((a, b) =>
-    (normalizeScore(b) - normalizeScore(a)) ||
-    (num(b, "Perfect Groups")   - num(a, "Perfect Groups"))   ||
-    (num(b, "Excellent Groups") - num(a, "Excellent Groups")) ||
-    (num(b, "Good Groups")      - num(a, "Good Groups"))      ||
-    String(a["Leaderboard Name"] || "").localeCompare(String(b["Leaderboard Name"] || ""))
-  );
-
+  // Top scorer from leaderboard
   let topName = "-", topScore = "-";
-  if (sortedRows.length) {
-    const top = sortedRows[0];
+  if (rows.length) {
+    const top = rows.reduce((best, r) => normalizeScore(r) > normalizeScore(best) ? r : best, rows[0]);
     topName  = String(top["Leaderboard Name"] || top["Name"] || "");
     topScore = String(normalizeScore(top));
   }
@@ -65,7 +56,7 @@ function renderSummary() {
   const updatedAt = state.updatedAt ? new Date(state.updatedAt) : null;
 
   setText("statParticipants", participantCount || "-");
-  setText("statTopScore",     sortedRows.length ? topName + " — " + topScore : "-");
+  setText("statTopScore",     rows.length ? topName + " — " + topScore : "-");
   setText("statUpdated",      updatedAt && !isNaN(updatedAt) ? updatedAt.toLocaleString() : "-");
 }
 
@@ -91,8 +82,12 @@ function renderGroupLeaderboard() {
 
   rows.forEach((row, idx) => {
     const tr = document.createElement("tr");
-    if (idx < 5) tr.classList.add("rank-" + (idx + 1));
-    const breakdown = row["Group Breakdown"] || row["Breakdown"] || row["Group by Group"] || row["Group Breakdown "] || "";
+    const rawBreakdown = row["Group Breakdown"] || row["Breakdown"] || row["Group by Group"] || row["Group Breakdown "] || "";
+    // Strip any legacy adjective labels e.g. "A:Perfect(20)" → "Group A: 20/20"
+    const breakdown = rawBreakdown
+      .replace(/\bGroup\s+/gi, 'Group ')
+      .replace(/([A-L]):\s*(?:Perfect|Excellent|Good|Poor)?\s*\(?(\d+)\)?/gi, 'Group $1: $2/20')
+      .trim();
     tr.innerHTML =
       `<td>${idx + 1}</td>` +
       `<td>${esc(row["Leaderboard Name"] || row["Name"] || "")}</td>` +
@@ -262,7 +257,7 @@ function renderPicks() {
     const groupCards = Object.keys(grouped).sort().map(letter => {
       const picks = grouped[letter]
         .sort((a, b) => placeRank(a.place) - placeRank(b.place))
-        .map(item => `<li><span class="pick-place">${esc(item.place)}</span>${esc(item.team)}</li>`)
+        .map(item => `<li><span class="pick-place">${esc(item.place)}</span> ${esc(item.team)}</li>`)
         .join("");
       return `<article class="group-card"><h4>Group ${letter}</h4><ol class="picks-list">${picks}</ol></article>`;
     }).join("");
