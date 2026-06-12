@@ -1,7 +1,7 @@
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 // Only change these two lines if your URLs change.
 
-const WEB_APP_URL   = "https://script.google.com/macros/s/AKfycbwL6NscxevevWKt9QzkTKEP3P-qAMjw36Jn_QEqiOsUCQE-2_kg5em4kYvzi0VuufZT/exec";
+const WEB_APP_URL   = "https://script.google.com/macros/s/AKfycbwma1amO7MpFOumczenrduGV9vFA4jEGV1StOCNC3R5LbiH4OarBuFeHd8fLmjuhvk/exec";
 const ENTRY_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe6zAHK_tEozTJuD1ALQwpPjXFdB1jwwhkRT49sfI8YPoiqTw/viewform";
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
