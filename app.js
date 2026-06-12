@@ -1,7 +1,7 @@
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 // Only change these two lines if your URLs change.
 
-const WEB_APP_URL   = "https://script.google.com/macros/s/AKfycbyZKJaR2dgSwvrpCvBpoRcUxN6D199z8wYZa_r12mvqsTdQocFIVi22bKZBAbeyMBCA/exec";
+const WEB_APP_URL   = "https://script.google.com/macros/s/AKfycbwL6NscxevevWKt9QzkTKEP3P-qAMjw36Jn_QEqiOsUCQE-2_kg5em4kYvzi0VuufZT/exec";
 const ENTRY_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe6zAHK_tEozTJuD1ALQwpPjXFdB1jwwhkRT49sfI8YPoiqTw/viewform";
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
@@ -38,17 +38,26 @@ function initTabs() {
 // ─── SUMMARY BAR ─────────────────────────────────────────────────────────────
 
 function renderSummary() {
-  const rows = state.leaderboardRows.length ? state.leaderboardRows : state.knockoutRows;
-
-  // Participant count = form responses (picksRows is always the raw submissions)
+  // Participant count = form responses
   const participantCount = (state.picksRows || []).filter(r =>
     String(r["Leaderboard Name"] || r["Name"] || "").trim()
   ).length;
 
-  // Top scorer from leaderboard
+  // Sort the leaderboard rows the same way as the table, then take the top entry.
+  // This prevents a mismatch where the table shows one person at #1 and the
+  // summary card shows a different person with the same score.
+  const baseRows = state.leaderboardRows.length ? state.leaderboardRows : state.knockoutRows;
+  const sortedRows = [...baseRows].sort((a, b) =>
+    (normalizeScore(b) - normalizeScore(a)) ||
+    (num(b, "Perfect Groups")   - num(a, "Perfect Groups"))   ||
+    (num(b, "Excellent Groups") - num(a, "Excellent Groups")) ||
+    (num(b, "Good Groups")      - num(a, "Good Groups"))      ||
+    String(a["Leaderboard Name"] || "").localeCompare(String(b["Leaderboard Name"] || ""))
+  );
+
   let topName = "-", topScore = "-";
-  if (rows.length) {
-    const top = rows.reduce((best, r) => normalizeScore(r) > normalizeScore(best) ? r : best, rows[0]);
+  if (sortedRows.length) {
+    const top = sortedRows[0];
     topName  = String(top["Leaderboard Name"] || top["Name"] || "");
     topScore = String(normalizeScore(top));
   }
@@ -56,7 +65,7 @@ function renderSummary() {
   const updatedAt = state.updatedAt ? new Date(state.updatedAt) : null;
 
   setText("statParticipants", participantCount || "-");
-  setText("statTopScore",     rows.length ? topName + " — " + topScore : "-");
+  setText("statTopScore",     sortedRows.length ? topName + " — " + topScore : "-");
   setText("statUpdated",      updatedAt && !isNaN(updatedAt) ? updatedAt.toLocaleString() : "-");
 }
 
@@ -82,6 +91,7 @@ function renderGroupLeaderboard() {
 
   rows.forEach((row, idx) => {
     const tr = document.createElement("tr");
+    if (idx < 5) tr.classList.add("rank-" + (idx + 1));
     const breakdown = row["Group Breakdown"] || row["Breakdown"] || row["Group by Group"] || row["Group Breakdown "] || "";
     tr.innerHTML =
       `<td>${idx + 1}</td>` +
