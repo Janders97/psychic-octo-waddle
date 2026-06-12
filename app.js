@@ -1,7 +1,6 @@
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
-// Only change these two lines if your URLs change.
 
-const WEB_APP_URL   = "https://script.google.com/macros/s/AKfycbxfghiDreRM0OittBv8bKi4ak25KlMXhzx9Cq_h-UA58_qcVbBcv3Hw7mQ-WeyoUW_N/exec";
+const WEB_APP_URL    = "https://script.google.com/macros/s/AKfycbxfghiDreRM0OittBv8bKi4ak25KlMXhzx9Cq_h-UA58_qcVbBcv3Hw7mQ-WeyoUW_N/exec";
 const ENTRY_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe6zAHK_tEozTJuD1ALQwpPjXFdB1jwwhkRT49sfI8YPoiqTw/viewform";
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
@@ -11,7 +10,7 @@ const state = {
   knockoutRows    : [],
   actualGroups    : [],
   picksRows       : [],
-  picksPublic     : true,   // overridden by live data from Google Sheet Settings tab
+  picksPublic     : true,
   updatedAt       : null,
   isLive          : false
 };
@@ -40,15 +39,21 @@ function initTabs() {
 function renderSummary() {
   const rows = state.leaderboardRows.length ? state.leaderboardRows : state.knockoutRows;
 
-  // Participant count = form responses (picksRows is always the raw submissions)
   const participantCount = (state.picksRows || []).filter(r =>
     String(r["Leaderboard Name"] || r["Name"] || "").trim()
   ).length;
 
-  // Top scorer from leaderboard
+  // Sort the same way as the leaderboard to guarantee we pick the true #1
   let topName = "-", topScore = "-";
   if (rows.length) {
-    const top = rows.reduce((best, r) => normalizeScore(r) > normalizeScore(best) ? r : best, rows[0]);
+    const sorted = [...rows].sort((a, b) =>
+      (normalizeScore(b) - normalizeScore(a)) ||
+      (num(b, "Perfect Groups")   - num(a, "Perfect Groups"))   ||
+      (num(b, "Excellent Groups") - num(a, "Excellent Groups")) ||
+      (num(b, "Good Groups")      - num(a, "Good Groups"))      ||
+      String(a["Leaderboard Name"] || "").localeCompare(String(b["Leaderboard Name"] || ""))
+    );
+    const top = sorted[0];
     topName  = String(top["Leaderboard Name"] || top["Name"] || "");
     topScore = String(normalizeScore(top));
   }
@@ -61,6 +66,9 @@ function renderSummary() {
 }
 
 // ─── GROUP LEADERBOARD ───────────────────────────────────────────────────────
+
+// Payout position CSS classes — top 5 get coloured rows matching prize places
+const POSITION_CLASSES = ["pos-1st", "pos-2nd", "pos-3rd", "pos-4th", "pos-5th"];
 
 function renderGroupLeaderboard() {
   const tbody = document.getElementById("groupLeaderboardBody");
@@ -82,12 +90,19 @@ function renderGroupLeaderboard() {
 
   rows.forEach((row, idx) => {
     const tr = document.createElement("tr");
+
+    // Colour top 5 rows to reflect payout positions
+    if (idx < POSITION_CLASSES.length) {
+      tr.classList.add(POSITION_CLASSES[idx]);
+    }
+
     const rawBreakdown = row["Group Breakdown"] || row["Breakdown"] || row["Group by Group"] || row["Group Breakdown "] || "";
     // Strip any legacy adjective labels e.g. "A:Perfect(20)" → "Group A: 20/20"
     const breakdown = rawBreakdown
       .replace(/\bGroup\s+/gi, 'Group ')
       .replace(/([A-L]):\s*(?:Perfect|Excellent|Good|Poor)?\s*\(?(\d+)\)?/gi, 'Group $1: $2/20')
       .trim();
+
     tr.innerHTML =
       `<td>${idx + 1}</td>` +
       `<td>${esc(row["Leaderboard Name"] || row["Name"] || "")}</td>` +
@@ -108,12 +123,12 @@ function renderKnockoutLeaderboard() {
   if (!tbody) return;
 
   const rows = [...state.knockoutRows].sort((a, b) =>
-    (normalizeScore(b)           - normalizeScore(a))           ||
-    (num(b, "Final")             - num(a, "Final"))             ||
-    (num(b, "Semi", "Semis")     - num(a, "Semi", "Semis"))     ||
-    (num(b, "Quarter","Quarterfinal") - num(a, "Quarter","Quarterfinal")) ||
-    (num(b, "Round of 16","R16") - num(a, "Round of 16","R16")) ||
-    (num(b, "Round of 32","R32") - num(a, "Round of 32","R32")) ||
+    (normalizeScore(b)                    - normalizeScore(a))                    ||
+    (num(b, "Final")                      - num(a, "Final"))                      ||
+    (num(b, "Semi", "Semis")              - num(a, "Semi", "Semis"))              ||
+    (num(b, "Quarter", "Quarterfinal")    - num(a, "Quarter", "Quarterfinal"))    ||
+    (num(b, "Round of 16", "R16")         - num(a, "Round of 16", "R16"))         ||
+    (num(b, "Round of 32", "R32")         - num(a, "Round of 32", "R32"))         ||
     String(a["Leaderboard Name"] || "").localeCompare(String(b["Leaderboard Name"] || ""))
   );
 
@@ -125,6 +140,7 @@ function renderKnockoutLeaderboard() {
 
   rows.forEach((row, idx) => {
     const tr = document.createElement("tr");
+    if (idx < POSITION_CLASSES.length) tr.classList.add(POSITION_CLASSES[idx]);
     tr.innerHTML =
       `<td>${idx + 1}</td>` +
       `<td>${esc(row["Leaderboard Name"] || row["Name"] || "")}</td>` +
@@ -147,13 +163,11 @@ function renderGroups() {
   grid.innerHTML = "";
 
   const groups = state.actualGroups;
-
   if (!groups.length) {
     grid.innerHTML = '<div class="notice-card"><p>Live standings will appear here once results are available.</p></div>';
     return;
   }
 
-  // Bucket rows by group name
   const buckets = {};
   groups.forEach(row => {
     const name = String(row.Group || row.group || "").trim();
@@ -163,23 +177,23 @@ function renderGroups() {
   });
 
   Object.keys(buckets).sort().forEach(groupName => {
-    const rows   = buckets[groupName].slice().sort((a, b) => Number(a.Rank || 0) - Number(b.Rank || 0));
+    const rows     = buckets[groupName].slice().sort((a, b) => Number(a.Rank || 0) - Number(b.Rank || 0));
     const hasGames = rows.some(r => Number(r.P || 0) > 0);
 
     const card = document.createElement("article");
     card.className = "group-card";
 
     const tableRows = rows.map(r => {
-      const pts   = Number(r.Pts || 0);
-      const p     = Number(r.P  || 0);
-      const rowClass = p > 0 ? "" : " class=\"not-played\"";
+      const pts      = Number(r.Pts || 0);
+      const p        = Number(r.P   || 0);
+      const rowClass = p > 0 ? "" : ' class="not-played"';
       return `<tr${rowClass}>` +
         `<td>${Number(r.Rank || 0)}</td>` +
         `<td>${esc(r.Team || "")}</td>` +
         `<td>${p}</td>` +
-        `<td>${Number(r.W || 0)}</td>` +
-        `<td>${Number(r.D || 0)}</td>` +
-        `<td>${Number(r.L || 0)}</td>` +
+        `<td>${Number(r.W  || 0)}</td>` +
+        `<td>${Number(r.D  || 0)}</td>` +
+        `<td>${Number(r.L  || 0)}</td>` +
         `<td>${Number(r.GF || 0)}</td>` +
         `<td>${Number(r.GA || 0)}</td>` +
         `<td>${Number(r.GD || 0)}</td>` +
@@ -207,21 +221,17 @@ function renderPicks() {
   if (!grid) return;
   grid.innerHTML = "";
 
-  // Update the pill badge
   const pill = document.getElementById("picksStatePill");
   if (pill) {
-    const isPublic = state.picksPublic;
-    pill.textContent = isPublic ? "Public" : "Private";
-    pill.className   = isPublic ? "pill" : "pill pill--locked";
+    pill.textContent = state.picksPublic ? "Public" : "Private";
+    pill.className   = state.picksPublic ? "pill" : "pill pill--locked";
   }
 
-  // If hidden, show a simple message
   if (!state.picksPublic) {
     grid.innerHTML = '<div class="notice-card"><p>Participant predictions are currently private.</p></div>';
     return;
   }
 
-  // Filter to entries that have a name
   const entries = (state.picksRows || []).filter(r =>
     String(r["Leaderboard Name"] || r["Name"] || "").trim()
   );
@@ -231,7 +241,6 @@ function renderPicks() {
     return;
   }
 
-  // Sort alphabetically by name
   entries.sort((a, b) =>
     String(a["Leaderboard Name"] || a["Name"] || "").localeCompare(
     String(b["Leaderboard Name"] || b["Name"] || ""))
@@ -240,7 +249,6 @@ function renderPicks() {
   entries.forEach(entry => {
     const name = esc(String(entry["Leaderboard Name"] || entry["Name"] || "Unknown").trim());
 
-    // Group picks by group letter, parsing keys like "Group A [Mexico ]"
     const grouped = {};
     Object.keys(entry).forEach(key => {
       const m = key.match(/^Group\s+([A-L])\s*\[(.+?)\s*\]$/i);
@@ -253,7 +261,6 @@ function renderPicks() {
       grouped[letter].push({ team, place });
     });
 
-    // Build inner group cards
     const groupCards = Object.keys(grouped).sort().map(letter => {
       const picks = grouped[letter]
         .sort((a, b) => placeRank(a.place) - placeRank(b.place))
@@ -269,35 +276,32 @@ function renderPicks() {
   });
 }
 
-// ─── DATA LOADING ─────────────────────────────────────────────────────────────
+// ─── DATA LOADING ────────────────────────────────────────────────────────────
 
 function applyData(payload, isLive) {
   state.leaderboardRows = payload.leaderboardRows || payload.rows || [];
   state.knockoutRows    = payload.knockoutRows    || [];
   state.actualGroups    = payload.actualGroups    || [];
-  // picksRows is always the raw submissions; visibility is controlled by picksPublic
   state.picksRows       = payload.picksRows       || [];
   state.updatedAt       = payload.updatedAt || payload.generatedAt || new Date().toISOString();
   state.isLive          = !!isLive;
 
-  // picks visibility comes from the Google Sheet Settings tab (via called.gs)
   if (typeof payload.picksPublic === "boolean") {
     state.picksPublic = payload.picksPublic;
   }
 
-  // Update data source pill
   const pill = document.getElementById("dataSourcePill");
   if (pill) {
     if (state.isLive) {
-      pill.textContent    = "live data";
-      pill.style.background   = "rgba(141,245,199,0.14)";
-      pill.style.color        = "#8df5c7";
-      pill.style.borderColor  = "rgba(141,245,199,0.22)";
+      pill.textContent       = "live data";
+      pill.style.background  = "rgba(141,245,199,0.14)";
+      pill.style.color       = "#8df5c7";
+      pill.style.borderColor = "rgba(141,245,199,0.22)";
     } else {
-      pill.textContent    = "connecting";
-      pill.style.background   = "rgba(255,196,97,0.12)";
-      pill.style.color        = "#ffd59c";
-      pill.style.borderColor  = "rgba(255,196,97,0.18)";
+      pill.textContent       = "connecting";
+      pill.style.background  = "rgba(255,196,97,0.12)";
+      pill.style.color       = "#ffd59c";
+      pill.style.borderColor = "rgba(255,196,97,0.18)";
     }
   }
 
@@ -358,7 +362,6 @@ function fmtPossible(row) {
   return (v === null || v === undefined || v === "") ? "-" : String(Number(v));
 }
 
-// Read a numeric field, trying multiple key names
 function num(row, ...keys) {
   for (const k of keys) {
     const v = row[k];
@@ -389,7 +392,7 @@ function placeRank(place) {
   return 99;
 }
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
+// ─── INIT ────────────────────────────────────────────────────────────────────
 
 function init() {
   document.title = "World Cup 2026 Pool";
