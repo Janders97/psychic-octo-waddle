@@ -415,3 +415,10 @@ th,
 .picks-grid .rules-card {
   margin-top: 14px;
 }
+
+/* ─── Leaderboard payout position row colours ─────────────────────────────── */
+.leaderboard-table tbody tr.pos-1st { background: rgba(255, 215, 0, 0.10); border-left: 3px solid rgba(255, 215, 0, 0.5); }
+.leaderboard-table tbody tr.pos-2nd { background: rgba(192, 192, 192, 0.10); border-left: 3px solid rgba(192, 192, 192, 0.4); }
+.leaderboard-table tbody tr.pos-3rd { background: rgba(205, 127, 50, 0.10); border-left: 3px solid rgba(205, 127, 50, 0.4); }
+.leaderboard-table tbody tr.pos-4th { background: rgba(100, 180, 255, 0.07); border-left: 3px solid rgba(100, 180, 255, 0.25); }
+.leaderboard-table tbody tr.pos-5th { background: rgba(100, 180, 255, 0.04); border-left: 3px solid rgba(100, 180, 255, 0.15); }
