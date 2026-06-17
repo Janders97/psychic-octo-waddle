@@ -4,106 +4,258 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>World Cup 2026 Pool</title>
+  <meta name="description" content="Anderson Prediction Pool for World Cup 2026." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="wrap">
-    <header class="head">
-      <div>
-        <span class="eyebrow">Anderson Prediction Pool</span>
-        <h1>World Cup 2026</h1>
+  <div class="page-shell">
+    <header class="hero">
+      <div class="hero__brand">
+        <div class="badge">Anderson Prediction Pool</div>
+        <h1>World Cup 2026 Pool</h1>
+        <p class="hero__subtitle">&#127464;&#127462; &#127474;&#127485; &#127482;&#127480;</p>
+        <p class="hero__copy">Scores on the doors, updated live.</p>
       </div>
-      <div class="status">
-        <span id="statusDot" class="dot"></span>
-        <span id="statusText">Connecting…</span>
+
+      <div class="hero__stats" id="summaryCards">
+        <div class="stat-card">
+          <span class="stat-card__label">Participants</span>
+          <strong id="statParticipants">Connecting...</strong>
+        </div>
+        <div class="stat-card">
+          <span class="stat-card__label">Top Score</span>
+          <strong id="statTopScore">Connecting...</strong>
+        </div>
+        <div class="stat-card">
+          <span class="stat-card__label">Last Updated</span>
+          <strong id="statUpdated">Connecting...</strong>
+        </div>
       </div>
     </header>
 
-    <div class="meta">
-      <div class="meta__item"><span>Participants</span><strong id="mParticipants">—</strong></div>
-      <div class="meta__item"><span>Leader</span><strong id="mLeader">—</strong></div>
-      <div class="meta__item"><span>Updated</span><strong id="mUpdated">—</strong></div>
-    </div>
-
-    <nav class="tabs">
+    <nav class="tabs" aria-label="Site sections">
       <button class="tab is-active" data-tab="leaderboard">Leaderboard</button>
-      <button class="tab" data-tab="groups">Live Groups</button>
-      <button class="tab" data-tab="predictions">Predictions</button>
-      <button class="tab" data-tab="info">Rules &amp; Payouts</button>
+      <button class="tab" data-tab="picks">Submitted Predictions</button>
+      <button class="tab" data-tab="groups">Groups</button>
+      <button class="tab" data-tab="rules">Rules</button>
+      <button class="tab" data-tab="payouts">Entry / Payouts</button>
     </nav>
 
     <main>
-      <!-- LEADERBOARD -->
       <section class="panel is-visible" id="tab-leaderboard">
-        <h2>Group-stage leaderboard</h2>
-        <p class="sub">Points won out of what's available so far. Top five share the prize pot.</p>
-        <div class="scroll">
-          <table id="leaderboard">
-            <thead><tr>
-              <th>#</th><th>Participant</th><th>Points</th><th>Possible</th>
-              <th>Breakdown</th><th>Perfect</th><th>Excellent</th><th>Good</th>
-            </tr></thead>
-            <tbody><tr><td colspan="8" class="empty">Waiting for live group results.</td></tr></tbody>
-          </table>
+        <div class="panel__header">
+          <div>
+            <h2>Leaderboard</h2>
+          </div>
+          <span class="pill" id="dataSourcePill">connecting</span>
         </div>
+
+        <section class="leaderboard-section">
+          <div class="leaderboard-section__header">
+            <div>
+              <h3>Group Stage Leaderboard</h3>
+              <p>Points won out of the points that are now mathematically available.</p>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table class="leaderboard-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Participant</th>
+                  <th>Points</th>
+                  <th>Total Pts Possible</th>
+                  <th>Group Breakdown</th>
+                  <th>Perfect</th>
+                  <th>Excellent</th>
+                  <th>Good</th>
+                </tr>
+              </thead>
+              <tbody id="groupLeaderboardBody">
+                <tr><td colspan="8" class="muted-cell">Waiting for live group results.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="leaderboard-section">
+          <div class="leaderboard-section__header">
+            <div>
+              <h3>Knockout Stage Leaderboard</h3>
+              <p>Bracket picks all the way through to the winner.</p>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table class="leaderboard-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Participant</th>
+                  <th>Points</th>
+                  <th>Total Pts Possible</th>
+                  <th>Final</th>
+                  <th>Semifinals</th>
+                  <th>Quarterfinals</th>
+                  <th>Round of 16</th>
+                  <th>Round of 32</th>
+                </tr>
+              </thead>
+              <tbody id="knockoutLeaderboardBody">
+                <tr><td colspan="9" class="muted-cell">Waiting for knockout scores.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
       </section>
 
-      <!-- LIVE GROUPS -->
+      <section class="panel" id="tab-picks">
+        <div class="panel__header">
+          <div>
+            <h2>Submitted Predictions</h2>
+            <p class="muted">All submitted group predictions are shown below.</p>
+          </div>
+          <span class="pill" id="picksStatePill">Public</span>
+        </div>
+
+        <div class="picks-grid" id="picksGrid" aria-live="polite"></div>
+      </section>
+
       <section class="panel" id="tab-groups">
-        <h2>Live group standings</h2>
-        <p class="sub">Pulled from live World Cup results and updated automatically.</p>
-        <div class="grid" id="groupsGrid"></div>
-      </section>
-
-      <!-- PREDICTIONS -->
-      <section class="panel" id="tab-predictions">
-        <div class="panel__head">
-          <div><h2>Submitted predictions</h2><p class="sub">Everyone's group order, as submitted.</p></div>
-          <span id="picksPill" class="pill">Public</span>
+        <div class="panel__header">
+          <div>
+            <h2>Groups</h2>
+          </div>
         </div>
-        <div id="predictionsList"></div>
+        <div class="groups-grid" id="groupsGrid"></div>
       </section>
 
-      <!-- INFO -->
-      <section class="panel" id="tab-info">
-        <h2>Rules &amp; payouts</h2>
-        <div class="card">
-          <h3>Scoring — group order</h3>
-          <p>Rank the four teams in each group 1st to 4th. You're predicting the final table, not scorelines.</p>
+      <section class="panel" id="tab-rules">
+        <div class="panel__header">
+          <div>
+            <h2>Rules</h2>
+            <p>How the pool works.</p>
+            <p>Group stage and knockout stage are separate competitions.</p>
+            <p>Each competition gets 50% of the total pot.</p>
+          </div>
+        </div>
+
+        <div class="rules-card">
+          <h3>Group stage: guess the order, not the scorelines</h3>
+          <p>
+            For each group, rank the four teams from 1st to 4th. You are only predicting the final group order, not the match-by-match scores.
+            Exact placements are worth 4 points, one place off is worth 2 points, two places off is worth 1 point, and a perfect group adds 4 points.
+          </p>
           <ul>
-            <li>Exact position — <strong>4 pts</strong></li>
-            <li>Off by one place — <strong>2 pts</strong></li>
-            <li>Off by two places — <strong>1 pt</strong></li>
-            <li>Perfect group order — <strong>+4 bonus</strong></li>
+            <li>Exact position: 4 points</li>
+            <li>Off by 1 place: 2 points</li>
+            <li>Off by 2 places: 1 point</li>
+            <li>Perfect group order: +4 points</li>
           </ul>
-          <p class="fine">Max 20 per group. Tiers: Perfect = 20, Excellent = 10–12, Good = 7–9. Tiebreakers: most perfect groups, then excellent, then good, then alphabetical.</p>
+          <p class="fine-print">
+            Max per group: 20 points. Tranches: Perfect = 20, Excellent = 17-19, Good = 12-16.
+          </p>
+          <p class="fine-print">
+            Group stage tiebreakers: most perfect groups, then most excellent groups, then most good groups, then most exact placements.
+          </p>
         </div>
-        <div class="card">
+
+        <div class="rules-card">
+          <h3>Knockout stage: build the bracket to the champion</h3>
+          <p>
+            The knockout competition is separate from the group stage. Predict the bracket all the way from the round of 32 to the winner.
+            Each correct advance is weighted by the odds at the time of prediction: harder, less likely calls are worth more; easy favourites are worth less.
+            That keeps the contest skill-based without making it feel random.
+          </p>
+          <ul>
+            <li>Predict the whole bracket through to the winner</li>
+            <li>Odds-weighted scoring rewards bolder picks</li>
+            <li>Each correct advance pick is scored on its own</li>
+          </ul>
+          <p class="fine-print">
+            Knockout tiebreakers: most points in the final, then semifinal, then quarterfinal, then round of 16, then round of 32.
+          </p>
+        </div>
+      </section>
+
+      <section class="panel" id="tab-payouts">
+        <div class="panel__header">
+          <div>
+            <h2>Entry / Payouts</h2>
+            <p>Buy-in, payout split, and prize structure.</p>
+          </div>
+        </div>
+
+        <div class="rules-card">
           <h3>Buy-in &amp; pot</h3>
           <ul>
-            <li>Buy-in: <strong>£20 / $27</strong> per person</li>
-            <li>Entrants: <strong>30</strong> · Pot: <strong>£600 / $810</strong></li>
-            <li>Group stage takes <strong>£300 / $405</strong>; knockout stage the other half.</li>
+            <li>Buy-in: <strong>&pound;20 / $27 per person</strong></li>
+            <li>Entrants: <strong>30</strong></li>
+            <li>Total pot: <strong>&pound;600 / $810</strong></li>
+            <li>Split evenly: <strong>&pound;300 / $405 per stage</strong> (group stage &amp; knockout stage)</li>
           </ul>
-          <table class="payout">
-            <thead><tr><th>Place</th><th>£</th><th>$</th></tr></thead>
+        </div>
+
+        <div class="rules-card">
+          <h3>Prize structure — per stage</h3>
+          <p>The top 5 finishers in each stage share that stage's prize pot.</p>
+          <table class="leaderboard-table payout-table" style="min-width:0;margin-top:14px;">
+            <thead>
+              <tr>
+                <th>Place</th>
+                <th style="text-align:right;">&pound; Prize</th>
+                <th style="text-align:right;">$ Prize</th>
+              </tr>
+            </thead>
             <tbody>
-              <tr><td>🏆 1st</td><td>£130</td><td>$176</td></tr>
-              <tr><td>🥈 2nd</td><td>£70</td><td>$95</td></tr>
-              <tr><td>🥉 3rd</td><td>£50</td><td>$68</td></tr>
-              <tr><td>4th</td><td>£30</td><td>$41</td></tr>
-              <tr><td>5th</td><td>£20</td><td>$27</td></tr>
+              <tr>
+                <td>&#127942; 1st</td>
+                <td style="text-align:right;"><strong>&pound;130</strong></td>
+                <td style="text-align:right;"><strong>$176</strong></td>
+              </tr>
+              <tr>
+                <td>&#129352; 2nd</td>
+                <td style="text-align:right;"><strong>&pound;70</strong></td>
+                <td style="text-align:right;"><strong>$95</strong></td>
+              </tr>
+              <tr>
+                <td>&#129353; 3rd</td>
+                <td style="text-align:right;"><strong>&pound;50</strong></td>
+                <td style="text-align:right;"><strong>$68</strong></td>
+              </tr>
+              <tr>
+                <td>4th</td>
+                <td style="text-align:right;"><strong>&pound;30</strong></td>
+                <td style="text-align:right;"><strong>$41</strong></td>
+              </tr>
+              <tr>
+                <td>5th</td>
+                <td style="text-align:right;"><strong>&pound;20</strong></td>
+                <td style="text-align:right;"><strong>$27</strong></td>
+              </tr>
             </tbody>
           </table>
-          <p class="fine">Dollar amounts approximate at £1 = $1.35. Knockout scoring is added once the bracket begins.</p>
+          <p class="fine-print" style="margin-top:12px;">
+            Maximum total winnable across both stages: <strong>&pound;260 / $352</strong> (sweeping 1st in both).
+            Dollar amounts are approximate at &pound;1&nbsp;=&nbsp;$1.35.
+          </p>
+        </div>
+
+        <div class="rules-card">
+          <h3>Group Stage Entry Link</h3>
+          <p><a class="sheet-link" id="entrySheetLink" href="#" target="_blank" rel="noreferrer">Open entry form</a></p>
         </div>
       </section>
     </main>
 
-    <footer class="foot">Private prediction pool · World Cup 2026</footer>
+    <footer class="site-footer">
+      <p>Private prediction pool not for commercial gain.</p>
+      <p class="muted">Anderson Prediction Pool &middot; World Cup 2026</p>
+    </footer>
   </div>
 
   <script src="app.js"></script>
