@@ -1,6 +1,6 @@
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 
-const WEB_APP_URL    = "https://script.google.com/macros/s/AKfycbz3hn00f-iVEhOEK2dz4CJRWHyZj1fi4lJ6ypRfcG_td4oJHEC0o5Oa9hb-rtiyNAP9/exec";
+const WEB_APP_URL    = "https://script.google.com/macros/s/AKfycbxfghiDreRM0OittBv8bKi4ak25KlMXhzx9Cq_h-UA58_qcVbBcv3Hw7mQ-WeyoUW_N/exec";
 const ENTRY_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe6zAHK_tEozTJuD1ALQwpPjXFdB1jwwhkRT49sfI8YPoiqTw/viewform";
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
@@ -51,6 +51,7 @@ function renderSummary() {
       (num(b, "Perfect Groups")   - num(a, "Perfect Groups"))   ||
       (num(b, "Excellent Groups") - num(a, "Excellent Groups")) ||
       (num(b, "Good Groups")      - num(a, "Good Groups"))      ||
+      (num(b, "Bullseyes", "Exact Placements") - num(a, "Bullseyes", "Exact Placements")) ||
       String(a["Leaderboard Name"] || "").localeCompare(String(b["Leaderboard Name"] || ""))
     );
     const top = sorted[0];
@@ -79,12 +80,13 @@ function renderGroupLeaderboard() {
     (num(b, "Perfect Groups")   - num(a, "Perfect Groups"))   ||
     (num(b, "Excellent Groups") - num(a, "Excellent Groups")) ||
     (num(b, "Good Groups")      - num(a, "Good Groups"))      ||
+    (num(b, "Bullseyes", "Exact Placements") - num(a, "Bullseyes", "Exact Placements")) ||
     String(a["Leaderboard Name"] || "").localeCompare(String(b["Leaderboard Name"] || ""))
   );
 
   tbody.innerHTML = "";
   if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="8" class="muted-cell">Waiting for live group results.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" class="muted-cell">Waiting for live group results.</td></tr>`;
     return;
   }
 
@@ -111,7 +113,8 @@ function renderGroupLeaderboard() {
       `<td class="breakdown-cell">${esc(breakdown) || "-"}</td>` +
       `<td>${num(row, "Perfect Groups")}</td>` +
       `<td>${num(row, "Excellent Groups")}</td>` +
-      `<td>${num(row, "Good Groups")}</td>`;
+      `<td>${num(row, "Good Groups")}</td>` +
+      `<td>${num(row, "Bullseyes", "Exact Placements")}</td>`;
     tbody.appendChild(tr);
   });
 }
