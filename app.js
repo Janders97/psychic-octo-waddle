@@ -1,6 +1,6 @@
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 
-const WEB_APP_URL    = "https://script.google.com/macros/s/AKfycbx5Qn5u6g5UiWHitmKd_MPBkbwKCfujBnVHBnINcMbTOCWtMPHYvhIZUArOwXyMiX6P/exec";
+const WEB_APP_URL    = "https://script.google.com/macros/s/AKfycbxfghiDreRM0OittBv8bKi4ak25KlMXhzx9Cq_h-UA58_qcVbBcv3Hw7mQ-WeyoUW_N/exec";
 const ENTRY_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe6zAHK_tEozTJuD1ALQwpPjXFdB1jwwhkRT49sfI8YPoiqTw/viewform";
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
@@ -11,27 +11,38 @@ const state = {
   actualGroups    : [],
   picksRows       : [],
   picksPublic     : true,
+  selectedPick    : "",
   updatedAt       : null,
   isLive          : false
 };
 
 // ─── TABS ────────────────────────────────────────────────────────────────────
 
-function initTabs() {
-  const tabs = document.querySelectorAll(".tab");
-  const panelIds = ["leaderboard", "picks", "groups", "rules", "payouts"];
-  const panels = {};
-  panelIds.forEach(id => { panels[id] = document.getElementById("tab-" + id); });
+const TAB_IDS = ["leaderboard", "picks", "groups", "rules", "payouts"];
 
-  tabs.forEach(btn => {
-    btn.addEventListener("click", () => {
-      tabs.forEach(b => b.classList.remove("is-active"));
-      btn.classList.add("is-active");
-      Object.values(panels).forEach(p => p && p.classList.remove("is-visible"));
-      const target = panels[btn.dataset.tab];
-      if (target) target.classList.add("is-visible");
-    });
+function activateTab(name) {
+  document.querySelectorAll(".tab").forEach(b =>
+    b.classList.toggle("is-active", b.dataset.tab === name)
+  );
+  TAB_IDS.forEach(id => {
+    const p = document.getElementById("tab-" + id);
+    if (p) p.classList.toggle("is-visible", id === name);
   });
+}
+
+function initTabs() {
+  document.querySelectorAll(".tab").forEach(btn => {
+    btn.addEventListener("click", () => activateTab(btn.dataset.tab));
+  });
+}
+
+// Jump from a leaderboard row to that participant's predictions
+function showParticipantPicks(name) {
+  state.selectedPick = name;
+  activateTab("picks");
+  renderPicks();
+  const nav = document.querySelector(".tabs");
+  if (nav) nav.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 // ─── SUMMARY BAR ─────────────────────────────────────────────────────────────
@@ -96,6 +107,18 @@ function renderGroupLeaderboard() {
     // Colour top 5 rows to reflect payout positions
     if (idx < POSITION_CLASSES.length) {
       tr.classList.add(POSITION_CLASSES[idx]);
+    }
+
+    // Click a row to jump to that participant's predictions
+    const pName = String(row["Leaderboard Name"] || row["Name"] || "").trim();
+    if (pName) {
+      tr.classList.add("clickable-row");
+      tr.tabIndex = 0;
+      tr.title = "View " + pName + "'s predictions";
+      tr.addEventListener("click", () => showParticipantPicks(pName));
+      tr.addEventListener("keydown", e => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); showParticipantPicks(pName); }
+      });
     }
 
     const rawBreakdown = row["Group Breakdown"] || row["Breakdown"] || row["Group by Group"] || row["Group Breakdown "] || "";
@@ -222,8 +245,8 @@ function renderGroups() {
 function renderPicks() {
   const grid = document.getElementById("picksGrid");
   if (!grid) return;
-  grid.innerHTML = "";
 
+  const select = document.getElementById("picksSelect");
   const pill = document.getElementById("picksStatePill");
   if (pill) {
     pill.textContent = state.picksPublic ? "Public" : "Private";
@@ -232,6 +255,7 @@ function renderPicks() {
 
   if (!state.picksPublic) {
     grid.innerHTML = '<div class="notice-card"><p>Participant predictions are currently private.</p></div>';
+    if (select) select.style.display = "none";
     return;
   }
 
@@ -241,6 +265,7 @@ function renderPicks() {
 
   if (!entries.length) {
     grid.innerHTML = '<div class="notice-card"><p>No participant predictions have been submitted yet.</p></div>';
+    if (select) select.style.display = "none";
     return;
   }
 
@@ -249,34 +274,56 @@ function renderPicks() {
     String(b["Leaderboard Name"] || b["Name"] || ""))
   );
 
-  entries.forEach(entry => {
-    const name = esc(String(entry["Leaderboard Name"] || entry["Name"] || "Unknown").trim());
+  // Populate the jump-to dropdown (only rebuild options when the names change)
+  const names = entries.map(e => String(e["Leaderboard Name"] || e["Name"] || "").trim());
+  if (select) {
+    select.style.display = "";
+    if (!state.selectedPick || names.indexOf(state.selectedPick) === -1) state.selectedPick = "";
+    const key = names.join("|");
+    if (select.dataset.names !== key) {
+      select.innerHTML =
+        '<option value="">All participants</option>' +
+        names.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("");
+      select.dataset.names = key;
+    }
+    select.value = state.selectedPick;
+  }
 
-    const grouped = {};
-    Object.keys(entry).forEach(key => {
-      const m = key.match(/^Group\s+([A-L])\s*\[(.+?)\s*\]$/i);
-      if (!m) return;
-      const letter = m[1].toUpperCase();
-      const team   = m[2].trim();
-      const place  = String(entry[key] || "").trim();
-      if (!place) return;
-      if (!grouped[letter]) grouped[letter] = [];
-      grouped[letter].push({ team, place });
-    });
+  const shown = state.selectedPick
+    ? entries.filter(e => String(e["Leaderboard Name"] || e["Name"] || "").trim() === state.selectedPick)
+    : entries;
 
-    const groupCards = Object.keys(grouped).sort().map(letter => {
-      const picks = grouped[letter]
-        .sort((a, b) => placeRank(a.place) - placeRank(b.place))
-        .map(item => `<li><span class="pick-place">${esc(item.place)}</span> ${esc(item.team)}</li>`)
-        .join("");
-      return `<article class="group-card"><h4>Group ${letter}</h4><ol class="picks-list">${picks}</ol></article>`;
-    }).join("");
+  grid.innerHTML = "";
+  shown.forEach(entry => grid.appendChild(buildPickCard(entry)));
+}
 
-    const card = document.createElement("article");
-    card.className = "rules-card participant-card";
-    card.innerHTML = `<h3>${name}</h3><div class="groups-grid">${groupCards}</div>`;
-    grid.appendChild(card);
+function buildPickCard(entry) {
+  const name = esc(String(entry["Leaderboard Name"] || entry["Name"] || "Unknown").trim());
+
+  const grouped = {};
+  Object.keys(entry).forEach(key => {
+    const m = key.match(/^Group\s+([A-L])\s*\[(.+?)\s*\]$/i);
+    if (!m) return;
+    const letter = m[1].toUpperCase();
+    const team   = m[2].trim();
+    const place  = String(entry[key] || "").trim();
+    if (!place) return;
+    if (!grouped[letter]) grouped[letter] = [];
+    grouped[letter].push({ team, place });
   });
+
+  const groupCards = Object.keys(grouped).sort().map(letter => {
+    const picks = grouped[letter]
+      .sort((a, b) => placeRank(a.place) - placeRank(b.place))
+      .map(item => `<li><span class="pick-place">${esc(item.place)}</span> ${esc(item.team)}</li>`)
+      .join("");
+    return `<article class="group-card"><h4>Group ${letter}</h4><ol class="picks-list">${picks}</ol></article>`;
+  }).join("");
+
+  const card = document.createElement("article");
+  card.className = "rules-card participant-card";
+  card.innerHTML = `<h3>${name}</h3><div class="groups-grid">${groupCards}</div>`;
+  return card;
 }
 
 // ─── DATA LOADING ────────────────────────────────────────────────────────────
@@ -397,10 +444,20 @@ function placeRank(place) {
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
 
+function initPicksControls() {
+  const select = document.getElementById("picksSelect");
+  if (!select) return;
+  select.addEventListener("change", () => {
+    state.selectedPick = select.value;
+    renderPicks();
+  });
+}
+
 function init() {
   document.title = "World Cup 2026 Pool";
   initTabs();
   initEntryLink();
+  initPicksControls();
   refreshLiveData();
   setInterval(refreshLiveData, 60_000);
 }

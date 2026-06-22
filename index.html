@@ -118,9 +118,14 @@
         <div class="panel__header">
           <div>
             <h2>Submitted Predictions</h2>
-            <p class="muted">All submitted group predictions are shown below.</p>
+            <p class="muted">Pick a participant from the dropdown, or browse them all below.</p>
           </div>
           <span class="pill" id="picksStatePill">Public</span>
+        </div>
+
+        <div class="picks-controls">
+          <label for="picksSelect" class="muted">Jump to participant</label>
+          <select id="picksSelect" class="picks-select" aria-label="Jump to participant"></select>
         </div>
 
         <div class="picks-grid" id="picksGrid" aria-live="polite"></div>
@@ -161,7 +166,7 @@
             Max per group: 20 points. Tranches: Perfect = 20, Excellent = 17-19, Good = 12-16.
           </p>
           <p class="fine-print">
-            Group stage tiebreakers: most perfect groups, then most excellent groups, then most good groups, then most exact placements.
+            Group stage tiebreakers: most perfect groups, then most excellent groups, then most good groups, then most exact placements ("bullseyes").
           </p>
         </div>
 
