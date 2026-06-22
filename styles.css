@@ -466,3 +466,26 @@ th,
   outline: 2px solid rgba(103, 211, 255, 0.45);
   outline-offset: -2px;
 }
+
+/* ─── Prediction cards: drop the ordinal column, colour teams by accuracy ──── */
+.group-card .picks-list {
+  list-style: none;
+  margin: 0;
+  padding-left: 0;
+  line-height: 1.7;
+}
+.group-card .picks-list li {
+  padding: 2px 0;
+  display: flex;
+  gap: 8px;
+}
+.pick-place {
+  min-width: 2.6em;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.pick-team { font-weight: 600; }                  /* stays muted until the group is scored */
+.pick-team.pick-correct { color: #6ee7a8; }       /* exact      (4 pts) */
+.pick-team.pick-off1    { color: #ffd95a; }       /* one off    (2 pts) */
+.pick-team.pick-off2    { color: #ff9f45; }       /* two off    (1 pt)  */
+.pick-team.pick-off3    { color: #ff6b6b; }       /* three off  (0 pts) */

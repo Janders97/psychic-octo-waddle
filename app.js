@@ -1,6 +1,6 @@
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 
-const WEB_APP_URL    = "https://script.google.com/macros/s/AKfycbyNdptiuPG-6nUgpBbUHXM4qJr_SSmuHy5B51N3VEw7DqovLpkkuyNZCpwca252rxl3/exec";
+const WEB_APP_URL    = "https://script.google.com/macros/s/AKfycbxfghiDreRM0OittBv8bKi4ak25KlMXhzx9Cq_h-UA58_qcVbBcv3Hw7mQ-WeyoUW_N/exec";
 const ENTRY_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe6zAHK_tEozTJuD1ALQwpPjXFdB1jwwhkRT49sfI8YPoiqTw/viewform";
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
@@ -242,6 +242,58 @@ function renderGroups() {
 
 // ─── SUBMITTED PREDICTIONS ───────────────────────────────────────────────────
 
+// Same canonicalization the scorer uses, so picks line up with ESPN names
+const TEAM_ALIASES = {
+  "korea republic": "south korea", "republic of korea": "south korea", "korea dpr": "north korea",
+  "czech republic": "czechia", "usa": "united states", "united states of america": "united states",
+  "ir iran": "iran", "china pr": "china", "ivory coast": "cote divoire", "cote d'ivoire": "cote divoire",
+  "cape verde": "cabo verde", "bosnia and herzegovina": "bosnia", "bosnia-herzegovina": "bosnia",
+  "bosnia & herzegovina": "bosnia", "turkiye": "turkey", "congo dr": "dr congo"
+};
+
+function canonTeam(s) {
+  const n = String(s == null ? "" : s)
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .trim().toLowerCase().replace(/\s+/g, " ");
+  return TEAM_ALIASES[n] || n;
+}
+
+function groupLetter(s) {
+  const str = String(s || "");
+  const m = str.match(/group\s+([A-L])/i) || str.match(/\b([A-L])\b\s*$/i);
+  return m ? m[1].toUpperCase() : "";
+}
+
+// letter -> { byTeam: {canonName: actualRank}, scored: bool }
+function buildActualLookup() {
+  const out = {};
+  (state.actualGroups || []).forEach(row => {
+    const L = groupLetter(row.Group || row.group);
+    if (!L) return;
+    if (!out[L]) out[L] = { byTeam: {}, played: 0, total: 0 };
+    out[L].byTeam[canonTeam(row.Team || row.team || "")] = Number(row.Rank || row.rank || 0);
+    out[L].total += 1;
+    if (Number(row.P || 0) > 0) out[L].played += 1;
+  });
+  Object.keys(out).forEach(L => {
+    out[L].scored = out[L].total > 0 && out[L].played === out[L].total;
+  });
+  return out;
+}
+
+// "" (no colour) until the group is scored, then green/yellow/orange/red by accuracy
+function pickDiffClass(item, actual) {
+  if (!actual || !actual.scored) return "";
+  const actualRank = actual.byTeam[canonTeam(item.team)];
+  const predPlace = placeRank(item.place);
+  if (!(actualRank >= 1 && actualRank <= 4) || !(predPlace >= 1 && predPlace <= 4)) return "";
+  const diff = Math.abs(predPlace - actualRank);
+  if (diff === 0) return " pick-correct";
+  if (diff === 1) return " pick-off1";
+  if (diff === 2) return " pick-off2";
+  return " pick-off3";
+}
+
 function renderPicks() {
   const grid = document.getElementById("picksGrid");
   if (!grid) return;
@@ -293,11 +345,12 @@ function renderPicks() {
     ? entries.filter(e => String(e["Leaderboard Name"] || e["Name"] || "").trim() === state.selectedPick)
     : entries;
 
+  const actualLookup = buildActualLookup();
   grid.innerHTML = "";
-  shown.forEach(entry => grid.appendChild(buildPickCard(entry)));
+  shown.forEach(entry => grid.appendChild(buildPickCard(entry, actualLookup)));
 }
 
-function buildPickCard(entry) {
+function buildPickCard(entry, actualLookup) {
   const name = esc(String(entry["Leaderboard Name"] || entry["Name"] || "Unknown").trim());
 
   const grouped = {};
@@ -313,11 +366,16 @@ function buildPickCard(entry) {
   });
 
   const groupCards = Object.keys(grouped).sort().map(letter => {
+    const actual = actualLookup ? actualLookup[letter] : null;
     const picks = grouped[letter]
       .sort((a, b) => placeRank(a.place) - placeRank(b.place))
-      .map(item => `<li><span class="pick-place">${esc(item.place)}</span> ${esc(item.team)}</li>`)
+      .map(item => {
+        const cls = pickDiffClass(item, actual);
+        return `<li><span class="pick-place">${esc(item.place)}</span>` +
+               `<span class="pick-team${cls}">${esc(item.team)}</span></li>`;
+      })
       .join("");
-    return `<article class="group-card"><h4>Group ${letter}</h4><ol class="picks-list">${picks}</ol></article>`;
+    return `<article class="group-card"><h4>Group ${letter}</h4><ul class="picks-list">${picks}</ul></article>`;
   }).join("");
 
   const card = document.createElement("article");
