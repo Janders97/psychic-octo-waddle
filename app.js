@@ -1,6 +1,6 @@
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 
-const WEB_APP_URL    = "https://script.google.com/macros/s/AKfycbwEVoaiipJblXwClUTwktRMen0zNiB3iMgGSRFR4UQqrHpZYXUddfxxEOez7kMTHng/exec";
+const WEB_APP_URL    = "https://script.google.com/macros/s/AKfycbxGsLGRoWRvfAng4Hz7KESe4Gj7uIbnpg4XSwF4xf-IErJE4uATDmigNSbUoPmK-9ZU/exec";
 const ENTRY_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe6zAHK_tEozTJuD1ALQwpPjXFdB1jwwhkRT49sfI8YPoiqTw/viewform";
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
@@ -50,21 +50,23 @@ function showParticipantPicks(name) {
 // ─── SUMMARY BAR ─────────────────────────────────────────────────────────────
 
 function renderSummary() {
-  const rows = state.leaderboardRows.length ? state.leaderboardRows : state.knockoutRows;
+  const koRows = state.knockoutRows || [];
+  const hasKO = koRows.length > 0;
 
-  const participantCount = (state.picksRows || []).filter(r =>
-    String(r["Leaderboard Name"] || r["Name"] || "").trim()
-  ).length;
+  // People actually in the knockout round = submitted brackets (latest-per-name)
+  const koEntrants = koRows.length;
 
-  // Sort the same way as the leaderboard to guarantee we pick the true #1
+  // Knockout leader, using the knockout tiebreaker order
   let topName = "-", topScore = "-";
-  if (rows.length) {
-    const sorted = [...rows].sort((a, b) =>
+  if (hasKO) {
+    const sorted = [...koRows].sort((a, b) =>
       (normalizeScore(b) - normalizeScore(a)) ||
-      (num(b, "Perfect Groups")   - num(a, "Perfect Groups"))   ||
-      (num(b, "Excellent Groups") - num(a, "Excellent Groups")) ||
-      (num(b, "Good Groups")      - num(a, "Good Groups"))      ||
-      (num(b, "Bullseyes", "Exact Placements") - num(a, "Bullseyes", "Exact Placements")) ||
+      (num(b, "Final")        - num(a, "Final"))        ||
+      (num(b, "Semi", "Semis") - num(a, "Semi", "Semis")) ||
+      (num(b, "Quarter", "Quarterfinal") - num(a, "Quarter", "Quarterfinal")) ||
+      (num(b, "Round of 16", "R16") - num(a, "Round of 16", "R16")) ||
+      (num(b, "Round of 32", "R32") - num(a, "Round of 32", "R32")) ||
+      (num(b, "Correct")      - num(a, "Correct"))      ||
       String(a["Leaderboard Name"] || "").localeCompare(String(b["Leaderboard Name"] || ""))
     );
     const top = sorted[0];
@@ -74,8 +76,8 @@ function renderSummary() {
 
   const updatedAt = state.updatedAt ? new Date(state.updatedAt) : null;
 
-  setText("statParticipants", participantCount || "-");
-  setText("statTopScore",     rows.length ? topName + " — " + topScore : "-");
+  setText("statParticipants", koEntrants || "-");
+  setText("statTopScore",     hasKO ? topName + " — " + topScore : "-");
   setText("statUpdated",      updatedAt && !isNaN(updatedAt) ? updatedAt.toLocaleString() : "-");
 }
 
