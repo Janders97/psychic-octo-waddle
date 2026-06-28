@@ -581,3 +581,13 @@ th,
 @media (max-width: 920px) {
   .ko-col { min-width: 120px; }
 }
+
+/* ─── Actual-results bracket (the real outcome, no grading) ───────────────── */
+.ko-actual-card { border-color: rgba(103, 211, 255, 0.28); }
+.ko-actual { color: var(--muted); }
+.ko-actual.decided {
+  color: #ffffff;
+  font-weight: 600;
+  border-color: rgba(103, 211, 255, 0.45);
+  background: rgba(103, 211, 255, 0.10);
+}

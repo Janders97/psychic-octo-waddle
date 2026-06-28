@@ -1,6 +1,6 @@
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 
-const WEB_APP_URL    = "https://script.google.com/macros/s/AKfycbxmDT87N1MM6-uARB9o0lBG1zhnxJeqmPogDRTH9E8FLDoq3WPFO4Jml4AO8HCehPLQ/exec";
+const WEB_APP_URL    = "https://script.google.com/macros/s/AKfycbxGsLGRoWRvfAng4Hz7KESe4Gj7uIbnpg4XSwF4xf-IErJE4uATDmigNSbUoPmK-9ZU/exec";
 const ENTRY_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe6zAHK_tEozTJuD1ALQwpPjXFdB1jwwhkRT49sfI8YPoiqTw/viewform";
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
@@ -247,7 +247,12 @@ function renderKnockoutBracketTab() {
 
   if (!preds.length) {
     if (select) select.style.display = "none";
-    wrap.innerHTML = '<div class="notice-card"><p>No brackets were submitted.</p></div>';
+    wrap.innerHTML = "";
+    wrap.appendChild(buildActualBracketCard(k));
+    const note = document.createElement("div");
+    note.className = "notice-card";
+    note.innerHTML = "<p>No brackets were submitted.</p>";
+    wrap.appendChild(note);
     return;
   }
 
@@ -269,7 +274,58 @@ function renderKnockoutBracketTab() {
     : preds.filter(p => p.name === state.selectedKO);
 
   wrap.innerHTML = "";
+  wrap.appendChild(buildActualBracketCard(k));      // master "what actually happened" bracket
   shown.forEach(p => wrap.appendChild(buildBracketCard(p, k)));
+}
+
+// The real bracket as it unfolds — actual winners from results, no grading colours.
+function buildActualBracketCard(k) {
+  const names = k.teamNames || {};
+  const teamLabel = c => esc(names[c] || c || "—");
+  const results = k.results || {};
+  const decided = Object.keys(results).length;
+
+  const card = document.createElement("article");
+  card.className = "rules-card participant-card ko-actual-card";
+
+  const bracket = document.createElement("div");
+  bracket.className = "ko-bracket";
+
+  // Column 0 — R32 matchups (white)
+  const colM = document.createElement("div");
+  colM.className = "ko-col";
+  const hM = document.createElement("h5");
+  hM.textContent = "Round of 32";
+  colM.appendChild(hM);
+  (k.bracketR32 || []).forEach(m => {
+    const cell = document.createElement("div");
+    cell.className = "ko-cell matchup";
+    cell.innerHTML = `<span class="ko-team">${teamLabel(m[0])} <span class="ko-vs">v</span> ${teamLabel(m[1])}</span>`;
+    colM.appendChild(cell);
+  });
+  bracket.appendChild(colM);
+
+  // Columns 1–5 — actual winners per round
+  const HEAD = ["Wins R32", "Wins R16", "Wins QF", "Wins SF", "Champion"];
+  for (let r = 0; r < 5; r++) {
+    const col = document.createElement("div");
+    col.className = "ko-col";
+    const h = document.createElement("h5");
+    h.textContent = HEAD[r];
+    col.appendChild(h);
+    for (let i = 0; i < KO_SIZES[r]; i++) {
+      const w = results[KO_PREFIX[r] + (i + 1)] || "";
+      const cell = document.createElement("div");
+      cell.className = "ko-cell ko-actual" + (w ? " decided" : "") + (r === 4 ? " champion" : "");
+      cell.innerHTML = `<span class="ko-team">${w ? teamLabel(w) : "—"}</span>`;
+      col.appendChild(cell);
+    }
+    bracket.appendChild(col);
+  }
+
+  card.innerHTML = `<h3>Actual Results <span class="ko-total">${decided}/31 matches in</span></h3>`;
+  card.appendChild(bracket);
+  return card;
 }
 
 function buildBracketCard(pred, k) {
