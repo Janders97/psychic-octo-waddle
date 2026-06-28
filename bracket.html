@@ -36,6 +36,8 @@
   .note{background:var(--panel);border:1px solid var(--line);border-radius:10px;
     padding:12px 14px;color:var(--muted);font-size:13px;margin-bottom:16px}
   .note b{color:var(--ink)}
+  .note code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;
+    padding:1px 6px;font-size:12.5px;color:var(--accent)}
   .scroller{overflow-x:auto;padding-bottom:10px}
   .bracket{display:flex;gap:14px;min-width:880px}
   .round{display:flex;flex-direction:column;justify-content:space-around;flex:1 1 0;gap:8px}
@@ -90,6 +92,10 @@
 
 <main>
   <div class="note" id="lockNote"></div>
+  <div class="note"><b>How points work.</b> Scoring is odds-based: the longer the odds of a team
+    winning a match, the more that correct pick is worth. Backing a heavy favourite earns a little;
+    calling a deep upset earns a lot. The <code>+</code> number on each team is what you'd score if
+    that pick comes true — see the full <b>points-per-pick table below</b>.</div>
   <div class="scroller">
     <div class="bracket" id="bracket"></div>
   </div>
@@ -110,7 +116,7 @@
 
 <script>
 /* ===== CONFIG — must match app.js WEB_APP_URL (same deployment) ===== */
-var WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyiZE0ZZZOWNpcisNEVKEGjMQmMaX5BT6sqPu4Cv7qGi7ZSDemCNWAQbJAloLVZuGaz/exec";
+var WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxfghiDreRM0OittBv8bKi4ak25KlMXhzx9Cq_h-UA58_qcVbBcv3Hw7mQ-WeyoUW_N/exec";
 var LOCK_ISO    = "2026-06-28T19:00:00Z"; // Sun 28 Jun 2026, 20:00 BST
 
 /* ===== FROZEN MODEL (identical to knockout.gs) ===== */
