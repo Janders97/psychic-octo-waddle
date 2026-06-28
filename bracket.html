@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>World Cup 2026 Pool — Knockout Bracket</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c232d; --line:#2a3340;
+    --ink:#e6edf3; --muted:#8b97a6; --accent:#67d3ff; --green:#8df5c7;
+    --amber:#ffd59c; --red:#ff8da1;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  a{color:var(--accent)}
+  header{position:sticky;top:0;z-index:5;background:rgba(13,17,23,.92);
+    backdrop-filter:blur(6px);border-bottom:1px solid var(--line);padding:14px 16px;}
+  .hwrap{max-width:1180px;margin:0 auto;display:flex;flex-wrap:wrap;gap:12px;align-items:center;}
+  h1{font-size:17px;margin:0;flex:1 1 240px;}
+  h1 small{display:block;color:var(--muted);font-weight:400;font-size:12.5px;margin-top:2px}
+  .namewrap{display:flex;align-items:center;gap:8px}
+  .namewrap input{background:var(--panel2);border:1px solid var(--line);color:var(--ink);
+    border-radius:8px;padding:9px 11px;font-size:14px;min-width:170px;}
+  .namewrap input:focus{outline:2px solid rgba(103,211,255,.4);border-color:transparent}
+  .pill{font-size:12px;padding:5px 10px;border-radius:999px;border:1px solid var(--line);
+    color:var(--muted);white-space:nowrap}
+  .pill b{color:var(--ink)}
+  .pill.warn{color:var(--amber);border-color:rgba(255,196,97,.3);background:rgba(255,196,97,.08)}
+  .pill.ok{color:var(--green);border-color:rgba(141,245,199,.3);background:rgba(141,245,199,.08)}
+  .pill.locked{color:var(--red);border-color:rgba(255,141,161,.35);background:rgba(255,141,161,.1)}
+  button.submit{background:var(--accent);color:#04222e;border:0;border-radius:9px;
+    padding:10px 16px;font-weight:700;font-size:14px;cursor:pointer}
+  button.submit:disabled{background:#26303b;color:#5b6675;cursor:not-allowed}
+  main{max-width:1180px;margin:0 auto;padding:18px 12px 90px}
+  .note{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:12px 14px;color:var(--muted);font-size:13px;margin-bottom:16px}
+  .note b{color:var(--ink)}
+  .scroller{overflow-x:auto;padding-bottom:10px}
+  .bracket{display:flex;gap:14px;min-width:880px}
+  .round{display:flex;flex-direction:column;justify-content:space-around;flex:1 1 0;gap:8px}
+  .round h3{position:sticky;top:64px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--muted);margin:0 0 4px;text-align:center}
+  .tie{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .opt{display:flex;align-items:center;justify-content:space-between;gap:8px;
+    padding:9px 11px;cursor:pointer;border:0;width:100%;background:transparent;color:var(--ink);
+    font-size:13.5px;text-align:left;border-bottom:1px solid var(--line)}
+  .opt:last-child{border-bottom:0}
+  .opt:hover:not(.disabled){background:var(--panel2)}
+  .opt .nm{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .opt .pts{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums;flex:0 0 auto}
+  .opt.empty{color:#56616f;cursor:default}
+  .opt.empty .pts{visibility:hidden}
+  .opt.chosen{background:rgba(103,211,255,.14)}
+  .opt.chosen .nm{color:var(--accent)}
+  .opt.chosen .pts{color:var(--accent)}
+  .opt.dimmed{opacity:.45}
+  .champ{margin-top:10px;text-align:center}
+  .champ .box{display:inline-block;background:rgba(141,245,199,.1);border:1px solid rgba(141,245,199,.35);
+    border-radius:12px;padding:12px 20px}
+  .champ .lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .champ .who{font-size:20px;font-weight:800;color:var(--green);margin-top:2px}
+  details.table{margin-top:22px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:4px 14px}
+  details.table summary{cursor:pointer;padding:10px 0;font-weight:600}
+  table{border-collapse:collapse;width:100%;font-size:13px}
+  th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right}
+  th:first-child,td:first-child{text-align:left}
+  thead th{color:var(--muted);font-weight:600;position:sticky;top:0}
+  .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);max-width:560px;
+    width:calc(100% - 28px);padding:12px 16px;border-radius:10px;font-size:14px;display:none;z-index:9}
+  .toast.show{display:block}
+  .toast.good{background:#10331f;border:1px solid rgba(141,245,199,.4);color:var(--green)}
+  .toast.bad{background:#3a1520;border:1px solid rgba(255,141,161,.4);color:var(--red)}
+</style>
+</head>
+<body>
+<header>
+  <div class="hwrap">
+    <h1>Knockout Bracket
+      <small>Pick a winner for every match, R32 → Final. Each pick is worth more the bolder it is.</small>
+    </h1>
+    <div class="namewrap">
+      <input id="name" placeholder="Your leaderboard name" autocomplete="off" />
+    </div>
+    <span class="pill" id="progress"><b>0</b>/31 picks</span>
+    <span class="pill" id="clock">—</span>
+    <button class="submit" id="submit" disabled>Submit bracket</button>
+  </div>
+</header>
+
+<main>
+  <div class="note" id="lockNote"></div>
+  <div class="scroller">
+    <div class="bracket" id="bracket"></div>
+  </div>
+  <div class="champ" id="champ"></div>
+
+  <details class="table">
+    <summary>Points per pick — full table</summary>
+    <div style="max-height:360px;overflow:auto">
+      <table id="ptsTable">
+        <thead><tr><th>Team</th><th>R32</th><th>R16</th><th>QF</th><th>SF</th><th>Final</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </details>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== CONFIG — must match app.js WEB_APP_URL (same deployment) ===== */
+var WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxfghiDreRM0OittBv8bKi4ak25KlMXhzx9Cq_h-UA58_qcVbBcv3Hw7mQ-WeyoUW_N/exec";
+var LOCK_ISO    = "2026-06-28T19:00:00Z"; // Sun 28 Jun 2026, 20:00 BST
+
+/* ===== FROZEN MODEL (identical to knockout.gs) ===== */
+var ODDS = {
+ARG:[97.276,89.664,67.312,44.498,27.225],FRA:[92.661,69.106,54.141,35.005,19.596],
+ESP:[88.556,61.077,47.764,26.894,14.13],BRA:[74.767,50.482,31.783,15.347,8.028],
+ENG:[90.499,48.37,27.972,13.677,7.325],COL:[90.965,61.198,21.485,10.141,4.348],
+POR:[70.102,28.234,19.042,8.435,3.495],NED:[67.38,54.903,19.001,8.669,3.317],
+GER:[77.762,25.151,16.122,7.838,3.1],NOR:[79.454,33.662,17.217,6.468,2.741],
+USA:[84.503,44.655,13.288,4.288,1.269],MEX:[71.846,39.653,12.438,3.266,0.939],
+SUI:[75.56,31.254,7.721,2.781,0.895],SEN:[50.512,26.538,7.54,2.317,0.68],
+BEL:[49.488,25.718,6.915,1.993,0.547],JPN:[25.233,11.908,5.134,1.558,0.529],
+MAR:[32.62,22.041,5.227,1.731,0.488],ECU:[28.154,10.46,4.084,1.335,0.482],
+CRO:[29.898,7.555,3.944,1.182,0.341],PAR:[22.238,4.067,1.7,0.48,0.141],
+CAN:[74.254,19.702,3.058,0.73,0.129],CIV:[20.546,3.948,1.097,0.227,0.057],
+AUS:[55.697,5.681,1.525,0.307,0.056],AUT:[11.444,3.134,1.201,0.256,0.048],
+ALG:[24.44,5.645,0.762,0.156,0.031],EGY:[44.303,3.833,0.932,0.168,0.027],
+SWE:[7.339,1.676,0.523,0.113,0.02],COD:[9.501,1.517,0.275,0.032,0.008],
+BIH:[15.497,3.089,0.306,0.039,0.004],RSA:[25.746,3.354,0.228,0.03,0.004],
+GHA:[9.035,1.903,0.165,0.028,0],CPV:[2.724,0.822,0.098,0.011,0]
+};
+var NAME={RSA:"South Africa",CAN:"Canada",GER:"Germany",PAR:"Paraguay",NED:"Netherlands",
+MAR:"Morocco",FRA:"France",SWE:"Sweden",POR:"Portugal",CRO:"Croatia",ESP:"Spain",AUT:"Austria",
+USA:"United States",BIH:"Bosnia-Herz.",BEL:"Belgium",SEN:"Senegal",BRA:"Brazil",JPN:"Japan",
+CIV:"Cote d'Ivoire",NOR:"Norway",MEX:"Mexico",ECU:"Ecuador",ENG:"England",COD:"DR Congo",
+ARG:"Argentina",CPV:"Cape Verde",AUS:"Australia",EGY:"Egypt",SUI:"Switzerland",ALG:"Algeria",
+COL:"Colombia",GHA:"Ghana"};
+var R32=[["RSA","CAN"],["NED","MAR"],["GER","PAR"],["FRA","SWE"],["POR","CRO"],["ESP","AUT"],
+["USA","BIH"],["BEL","SEN"],["BRA","JPN"],["CIV","NOR"],["MEX","ECU"],["ENG","COD"],
+["ARG","CPV"],["AUS","EGY"],["SUI","ALG"],["COL","GHA"]];
+var ROUND_LABELS=["Round of 32","Round of 16","Quarter-finals","Semi-finals","Final"];
+var PREFIX=["R32","R16","QF","SF","F"], SIZES=[16,8,4,2,1];
+var K=6.5,A=0.6,FLOOR=4,CAPS=[13,15,16,18,20];
+
+function pts(code,r){var a=ODDS[code];if(!a)return 0;var p=a[r]/100,cap=CAPS[r];
+  var raw=p<=0?cap:Math.round(K*Math.pow(-Math.log(p),A));return Math.max(FLOOR,Math.min(cap,raw));}
+function slotKey(r,i){return PREFIX[r]+(i+1);}
+function nm(code){return code?(NAME[code]||code):null;}
+
+/* ===== STATE ===== */
+var picks={};               // slotKey -> team code
+var locked=false;
+
+function competitors(r,i){
+  if(r===0)return R32[i].slice();
+  return [picks[slotKey(r-1,2*i)]||null, picks[slotKey(r-1,2*i+1)]||null];
+}
+// Remove any downstream pick that is no longer one of its slot's competitors
+function normalize(){
+  for(var r=1;r<5;r++){
+    for(var i=0;i<SIZES[r];i++){
+      var k=slotKey(r,i), comp=competitors(r,i);
+      if(picks[k] && comp.indexOf(picks[k])<0) delete picks[k];
+    }
+  }
+}
+function choose(r,i,code){
+  if(locked||!code)return;
+  picks[slotKey(r,i)]=code;
+  normalize();
+  render();
+}
+function countPicks(){var n=0;for(var k in picks)if(picks[k])n++;return n;}
+
+/* ===== RENDER ===== */
+function render(){
+  var brk=document.getElementById("bracket");
+  brk.innerHTML="";
+  for(var r=0;r<5;r++){
+    var col=document.createElement("div");col.className="round";
+    var h=document.createElement("h3");h.textContent=ROUND_LABELS[r];col.appendChild(h);
+    for(var i=0;i<SIZES[r];i++){
+      col.appendChild(tieEl(r,i));
+    }
+    brk.appendChild(col);
+  }
+  // champion banner
+  var champ=document.getElementById("champ");
+  var c=picks[slotKey(4,0)];
+  champ.innerHTML = c
+    ? '<div class="box"><div class="lbl">Your champion</div><div class="who">'+esc(nm(c))+
+      '  <span style="font-size:13px;color:var(--muted)">(+'+pts(c,4)+')</span></div></div>'
+    : '';
+  // progress + submit gating
+  var n=countPicks();
+  document.getElementById("progress").innerHTML="<b>"+n+"</b>/31 picks";
+  refreshSubmit(n);
+}
+function tieEl(r,i){
+  var wrap=document.createElement("div");wrap.className="tie";
+  var comp=competitors(r,i), chosen=picks[slotKey(r,i)];
+  [0,1].forEach(function(side){
+    var code=comp[side];
+    var b=document.createElement("button");
+    b.className="opt"+(code?"":" empty")+(code&&chosen===code?" chosen":"")+
+      (code&&chosen&&chosen!==code?" dimmed":"")+(locked?" disabled":"");
+    if(!code){
+      b.innerHTML='<span class="nm">—</span><span class="pts"></span>';
+    }else{
+      b.innerHTML='<span class="nm">'+esc(nm(code))+'</span><span class="pts">+'+pts(code,r)+'</span>';
+      if(!locked) b.addEventListener("click",function(){choose(r,i,code);});
+    }
+    wrap.appendChild(b);
+  });
+  return wrap;
+}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+/* ===== POINTS TABLE ===== */
+(function fillTable(){
+  var tb=document.querySelector("#ptsTable tbody");
+  Object.keys(ODDS).forEach(function(t){
+    var tr=document.createElement("tr");
+    tr.innerHTML="<td>"+esc(nm(t))+"</td>"+[0,1,2,3,4].map(function(r){return "<td>"+pts(t,r)+"</td>";}).join("");
+    tb.appendChild(tr);
+  });
+})();
+
+/* ===== LOCK / COUNTDOWN ===== */
+function fmtLeft(ms){
+  if(ms<=0)return "closed";
+  var s=Math.floor(ms/1000),d=Math.floor(s/86400);s-=d*86400;
+  var h=Math.floor(s/3600);s-=h*3600;var m=Math.floor(s/60);s-=m*60;
+  if(d>0)return d+"d "+h+"h "+m+"m";
+  if(h>0)return h+"h "+m+"m "+s+"s";
+  return m+"m "+s+"s";
+}
+function tick(){
+  var left=new Date(LOCK_ISO).getTime()-Date.now();
+  var clock=document.getElementById("clock");
+  var lockDate=new Date(LOCK_ISO);
+  if(left<=0){
+    if(!locked){locked=true;render();}
+    clock.className="pill locked";clock.innerHTML="Closed";
+    document.getElementById("lockNote").innerHTML=
+      "<b>Predictions are closed.</b> The bracket locked at "+lockDate.toLocaleString()+
+      ". Everyone's picks are now visible on the main pool site.";
+    document.getElementById("name").disabled=true;
+  }else{
+    clock.className=(left<3600000?"pill warn":"pill");
+    clock.innerHTML="Closes in <b>"+fmtLeft(left)+"</b>";
+    document.getElementById("lockNote").innerHTML=
+      "<b>One bracket per person.</b> Pick every match through to the champion, enter your "+
+      "leaderboard name, and hit submit. You can re-submit any time before the lock to change "+
+      "your picks — the latest one counts. Locks "+lockDate.toLocaleString()+".";
+  }
+}
+
+/* ===== SUBMIT ===== */
+function refreshSubmit(n){
+  var name=document.getElementById("name").value.trim();
+  document.getElementById("submit").disabled = locked || n<31 || !name;
+}
+document.getElementById("name").addEventListener("input",function(){refreshSubmit(countPicks());});
+
+document.getElementById("submit").addEventListener("click",function(){
+  var name=document.getElementById("name").value.trim();
+  if(locked){toast("Predictions are closed.",false);return;}
+  if(!name){toast("Enter your leaderboard name first.",false);return;}
+  if(countPicks()<31){toast("Finish every match before submitting.",false);return;}
+  var btn=this;btn.disabled=true;btn.textContent="Submitting…";
+  fetch(WEB_APP_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+    body:JSON.stringify({name:name,picks:picks})})
+   .then(function(res){return res.json();})
+   .then(function(data){
+     if(data&&data.ok){toast(data.message||"Bracket submitted!",true);}
+     else{toast((data&&data.message)||"Submission rejected.",false);}
+   })
+   .catch(function(){
+     // Opaque/CORS or network hiccup — the POST usually still lands; advise a re-check.
+     toast("Sent — if you don't see your bracket on the site after the lock, submit once more.",true);
+   })
+   .then(function(){btn.textContent="Submit bracket";refreshSubmit(countPicks());});
+});
+
+function toast(msg,good){
+  var t=document.getElementById("toast");
+  t.textContent=msg;t.className="toast show "+(good?"good":"bad");
+  clearTimeout(t._t);t._t=setTimeout(function(){t.className="toast";},6000);
+}
+
+/* ===== INIT ===== */
+render();tick();setInterval(tick,1000);
+</script>
+</body>
+</html>
