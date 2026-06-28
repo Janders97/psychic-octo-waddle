@@ -1,6 +1,6 @@
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 
-const WEB_APP_URL    = "https://script.google.com/macros/s/AKfycbw3KnGYe-z2NHNQEJ6CS8mPeCi1hEh76fUL1UWtLqV5FKvtVUv7tlHqPPs3KvfFXRAU/exec";
+const WEB_APP_URL    = "https://script.google.com/macros/s/AKfycbxGsLGRoWRvfAng4Hz7KESe4Gj7uIbnpg4XSwF4xf-IErJE4uATDmigNSbUoPmK-9ZU/exec";
 const ENTRY_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe6zAHK_tEozTJuD1ALQwpPjXFdB1jwwhkRT49sfI8YPoiqTw/viewform";
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
@@ -157,6 +157,7 @@ function renderKnockoutLeaderboard() {
     (num(b, "Quarter", "Quarterfinal")    - num(a, "Quarter", "Quarterfinal"))    ||
     (num(b, "Round of 16", "R16")         - num(a, "Round of 16", "R16"))         ||
     (num(b, "Round of 32", "R32")         - num(a, "Round of 32", "R32"))         ||
+    (num(b, "Correct")                    - num(a, "Correct"))                    ||
     String(a["Leaderboard Name"] || "").localeCompare(String(b["Leaderboard Name"] || ""))
   );
 
@@ -185,12 +186,12 @@ function renderKnockoutLeaderboard() {
       `<td>${idx + 1}</td>` +
       `<td>${esc(row["Leaderboard Name"] || row["Name"] || "")}</td>` +
       `<td>${normalizeScore(row)}</td>` +
-      `<td>${num(row, "Correct")}</td>` +
       `<td>${num(row, "Final")}</td>` +
       `<td>${num(row, "Semi", "Semis")}</td>` +
       `<td>${num(row, "Quarter", "Quarterfinal")}</td>` +
       `<td>${num(row, "Round of 16", "R16")}</td>` +
-      `<td>${num(row, "Round of 32", "R32")}</td>`;
+      `<td>${num(row, "Round of 32", "R32")}</td>` +
+      `<td>${num(row, "Correct")}</td>`;
     tbody.appendChild(tr);
   });
 }
