@@ -38,6 +38,7 @@
 
     <nav class="tabs" aria-label="Site sections">
       <button class="tab is-active" data-tab="leaderboard">Leaderboard</button>
+      <button class="tab" data-tab="knockout">Knockout Brackets</button>
       <button class="tab" data-tab="picks">Submitted Predictions</button>
       <button class="tab" data-tab="groups">Groups</button>
       <button class="tab" data-tab="rules">Rules</button>
@@ -53,6 +54,36 @@
           </div>
           <span class="pill" id="dataSourcePill">connecting</span>
         </div>
+
+        <section class="leaderboard-section">
+          <div class="leaderboard-section__header">
+            <div>
+              <h3>Knockout Stage Leaderboard</h3>
+              <p>Bracket picks all the way through to the winner. Click a row to see that bracket.</p>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table class="leaderboard-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Participant</th>
+                  <th>Points</th>
+                  <th>Correct</th>
+                  <th>Final</th>
+                  <th>Semifinals</th>
+                  <th>Quarterfinals</th>
+                  <th>Round of 16</th>
+                  <th>Round of 32</th>
+                </tr>
+              </thead>
+              <tbody id="knockoutLeaderboardBody">
+                <tr><td colspan="9" class="muted-cell">Waiting for knockout scores.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
 
         <section class="leaderboard-section">
           <div class="leaderboard-section__header">
@@ -83,36 +114,35 @@
             </table>
           </div>
         </section>
+      </section>
 
-        <section class="leaderboard-section">
-          <div class="leaderboard-section__header">
-            <div>
-              <h3>Knockout Stage Leaderboard</h3>
-              <p>Bracket picks all the way through to the winner.</p>
-            </div>
+      <section class="panel" id="tab-knockout">
+        <div class="panel__header">
+          <div>
+            <h2>Knockout Brackets</h2>
+            <p class="muted">Everyone's bracket, graded as results land. The Round-of-32 teams are shown in white; each onward pick stays grey until its match is played, then turns <span style="color:#6ee7a8;font-weight:700;">green</span> if right or <span style="color:#ff6b6b;font-weight:700;">red</span> if wrong, with the points scored beside it.</p>
           </div>
+          <span class="pill" id="koStatePill">&nbsp;</span>
+        </div>
 
+        <details class="ko-points-details">
+          <summary>Points per pick — full table</summary>
           <div class="table-wrap">
-            <table class="leaderboard-table">
+            <table class="leaderboard-table ko-points-table" style="min-width:520px;">
               <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Participant</th>
-                  <th>Points</th>
-                  <th>Total Pts Possible</th>
-                  <th>Final</th>
-                  <th>Semifinals</th>
-                  <th>Quarterfinals</th>
-                  <th>Round of 16</th>
-                  <th>Round of 32</th>
-                </tr>
+                <tr><th>Team</th><th>R32</th><th>R16</th><th>QF</th><th>SF</th><th>Final</th></tr>
               </thead>
-              <tbody id="knockoutLeaderboardBody">
-                <tr><td colspan="9" class="muted-cell">Waiting for knockout scores.</td></tr>
-              </tbody>
+              <tbody id="koPointsBody"></tbody>
             </table>
           </div>
-        </section>
+        </details>
+
+        <div class="picks-controls">
+          <label for="koSelect" class="muted">Jump to participant</label>
+          <select id="koSelect" class="picks-select" aria-label="Jump to participant"></select>
+        </div>
+
+        <div id="koBracketWrap" aria-live="polite"></div>
       </section>
 
       <section class="panel" id="tab-picks">

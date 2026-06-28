@@ -489,3 +489,95 @@ th,
 .pick-team.pick-off1    { color: #ffd95a; }       /* one off    (2 pts) */
 .pick-team.pick-off2    { color: #ff9f45; }       /* two off    (1 pt)  */
 .pick-team.pick-off3    { color: #ff6b6b; }       /* three off  (0 pts) */
+
+/* ─── Knockout brackets (graded display) ─────────────────────────────────── */
+.ko-points-details {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 6px 16px;
+  margin-bottom: 16px;
+}
+.ko-points-details > summary {
+  cursor: pointer;
+  padding: 10px 0;
+  font-weight: 700;
+}
+.ko-points-table th, .ko-points-table td { text-align: right; }
+.ko-points-table th:first-child, .ko-points-table td:first-child { text-align: left; }
+
+.participant-card .ko-total {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-left: 10px;
+}
+
+.ko-bracket {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 6px 2px 10px;
+  margin-top: 12px;
+}
+.ko-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: 6px;
+  flex: 1 1 0;
+  min-width: 132px;
+}
+.ko-col h5 {
+  margin: 0 0 4px;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: center;
+  position: sticky;
+  top: 0;
+}
+.ko-cell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 0.84rem;
+  background: rgba(255, 255, 255, 0.04);
+}
+.ko-cell .ko-team { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ko-cell .ko-vs { color: var(--muted); font-size: 0.78em; margin: 0 2px; }
+
+/* Round-of-32 matchup teams render in white */
+.ko-cell.matchup { color: #ffffff; font-weight: 600; }
+
+/* Advancement picks: grey until played, then green / red */
+.ko-pick { color: var(--muted); }
+.ko-pick.correct {
+  color: #6ee7a8;
+  border-color: rgba(110, 231, 168, 0.4);
+  background: rgba(110, 231, 168, 0.08);
+}
+.ko-pick.wrong {
+  color: #ff6b6b;
+  border-color: rgba(255, 107, 107, 0.35);
+  background: rgba(255, 107, 107, 0.08);
+}
+.ko-pick.champion { font-weight: 700; }
+
+.ko-pts {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.78rem;
+  color: var(--muted);
+  flex: 0 0 auto;
+}
+.ko-pts.good { color: #6ee7a8; }
+.ko-pts.bad  { color: rgba(255, 107, 107, 0.8); }
+
+@media (max-width: 920px) {
+  .ko-col { min-width: 120px; }
+}

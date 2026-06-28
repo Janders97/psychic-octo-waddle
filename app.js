@@ -8,6 +8,8 @@ const ENTRY_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe6zAHK_tEozTJu
 const state = {
   leaderboardRows : [],
   knockoutRows    : [],
+  knockout        : null,
+  selectedKO      : "",
   actualGroups    : [],
   picksRows       : [],
   picksPublic     : true,
@@ -18,7 +20,7 @@ const state = {
 
 // ─── TABS ────────────────────────────────────────────────────────────────────
 
-const TAB_IDS = ["leaderboard", "picks", "groups", "rules", "payouts"];
+const TAB_IDS = ["leaderboard", "knockout", "picks", "groups", "rules", "payouts"];
 
 function activateTab(name) {
   document.querySelectorAll(".tab").forEach(b =>
@@ -167,11 +169,23 @@ function renderKnockoutLeaderboard() {
   rows.forEach((row, idx) => {
     const tr = document.createElement("tr");
     if (idx < POSITION_CLASSES.length) tr.classList.add(POSITION_CLASSES[idx]);
+
+    const pName = String(row["Leaderboard Name"] || row["Name"] || "").trim();
+    if (pName) {
+      tr.classList.add("clickable-row");
+      tr.tabIndex = 0;
+      tr.title = "View " + pName + "'s bracket";
+      tr.addEventListener("click", () => showParticipantBracket(pName));
+      tr.addEventListener("keydown", e => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); showParticipantBracket(pName); }
+      });
+    }
+
     tr.innerHTML =
       `<td>${idx + 1}</td>` +
       `<td>${esc(row["Leaderboard Name"] || row["Name"] || "")}</td>` +
       `<td>${normalizeScore(row)}</td>` +
-      `<td>${fmtPossible(row)}</td>` +
+      `<td>${num(row, "Correct")}</td>` +
       `<td>${num(row, "Final")}</td>` +
       `<td>${num(row, "Semi", "Semis")}</td>` +
       `<td>${num(row, "Quarter", "Quarterfinal")}</td>` +
@@ -181,7 +195,144 @@ function renderKnockoutLeaderboard() {
   });
 }
 
-// ─── LIVE GROUP STANDINGS ────────────────────────────────────────────────────
+// ─── KNOCKOUT BRACKETS (graded) ──────────────────────────────────────────────
+
+const KO_ROUND_LABELS = ["Round of 32", "Round of 16", "Quarter-finals", "Semi-finals", "Final"];
+const KO_PREFIX = ["R32", "R16", "QF", "SF", "F"];
+const KO_SIZES  = [16, 8, 4, 2, 1];
+
+function koRoundIdxOfSlot(sk) {
+  if (sk.indexOf("R32") === 0) return 0;
+  if (sk.indexOf("R16") === 0) return 1;
+  if (sk.indexOf("QF")  === 0) return 2;
+  if (sk.indexOf("SF")  === 0) return 3;
+  return 4;
+}
+
+// Jump from a knockout leaderboard row to that participant's bracket
+function showParticipantBracket(name) {
+  state.selectedKO = name;
+  activateTab("knockout");
+  renderKnockoutBracketTab();
+  const nav = document.querySelector(".tabs");
+  if (nav) nav.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function renderKnockoutBracketTab() {
+  const k = state.knockout;
+  const wrap = document.getElementById("koBracketWrap");
+  const pill = document.getElementById("koStatePill");
+  const ptsBody = document.getElementById("koPointsBody");
+  const select = document.getElementById("koSelect");
+  if (!wrap) return;
+
+  // Points-per-pick table (built once)
+  if (ptsBody && k && k.pointsTable && ptsBody.dataset.filled !== "1") {
+    ptsBody.innerHTML = k.pointsTable.map(r =>
+      `<tr><td>${esc(r.name || r.team)}</td><td>${r.R32}</td><td>${r.R16}</td>` +
+      `<td>${r.QF}</td><td>${r.SF}</td><td>${r.Final}</td></tr>`).join("");
+    ptsBody.dataset.filled = "1";
+  }
+
+  if (!k || !k.locked) {
+    if (pill) { pill.textContent = "Locks " + (k ? new Date(k.lockISO).toLocaleString() : "soon"); pill.className = "pill pill--locked"; }
+    if (select) select.style.display = "none";
+    wrap.innerHTML = '<div class="notice-card"><p>Brackets become visible here once predictions lock.</p></div>';
+    return;
+  }
+
+  const preds = (k.predictions || []).slice().sort((a, b) =>
+    (b.total - a.total) || String(a.name).localeCompare(String(b.name)));
+  if (pill) { pill.textContent = "Locked · graded live"; pill.className = "pill"; }
+
+  if (!preds.length) {
+    if (select) select.style.display = "none";
+    wrap.innerHTML = '<div class="notice-card"><p>No brackets were submitted.</p></div>';
+    return;
+  }
+
+  // Participant dropdown (default to the leader)
+  const names = preds.map(p => p.name);
+  if (select) {
+    select.style.display = "";
+    if (!state.selectedKO || names.indexOf(state.selectedKO) === -1) state.selectedKO = names[0];
+    const key = names.join("|");
+    if (select.dataset.names !== key) {
+      select.innerHTML = '<option value="__all__">All participants</option>' +
+        names.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("");
+      select.dataset.names = key;
+    }
+    select.value = state.selectedKO;
+  }
+
+  const shown = state.selectedKO === "__all__" ? preds
+    : preds.filter(p => p.name === state.selectedKO);
+
+  wrap.innerHTML = "";
+  shown.forEach(p => wrap.appendChild(buildBracketCard(p, k)));
+}
+
+function buildBracketCard(pred, k) {
+  const names = k.teamNames || {};
+  const teamLabel = c => esc(names[c] || c || "—");
+  // potential points lookup: code -> {R32,R16,QF,SF,Final}
+  const pot = {};
+  (k.pointsTable || []).forEach(r => { pot[r.team] = r; });
+  const roundKey = ["R32", "R16", "QF", "SF", "Final"];
+
+  const card = document.createElement("article");
+  card.className = "rules-card participant-card";
+
+  const bracket = document.createElement("div");
+  bracket.className = "ko-bracket";
+
+  // Column 0 — the fixed Round-of-32 matchups, in white
+  const colM = document.createElement("div");
+  colM.className = "ko-col";
+  const hM = document.createElement("h5");
+  hM.textContent = "Round of 32";
+  colM.appendChild(hM);
+  (k.bracketR32 || []).forEach(m => {
+    const cell = document.createElement("div");
+    cell.className = "ko-cell matchup";
+    cell.innerHTML = `<span class="ko-team">${teamLabel(m[0])} <span class="ko-vs">v</span> ${teamLabel(m[1])}</span>`;
+    colM.appendChild(cell);
+  });
+  bracket.appendChild(colM);
+
+  // Columns 1–5 — the participant's advancement picks per round (graded)
+  const PICK_HEADERS = ["Wins R32", "Wins R16", "Wins QF", "Wins SF", "Champion"];
+  for (let r = 0; r < 5; r++) {
+    const col = document.createElement("div");
+    col.className = "ko-col";
+    const h = document.createElement("h5");
+    h.textContent = PICK_HEADERS[r];
+    col.appendChild(h);
+
+    for (let i = 0; i < KO_SIZES[r]; i++) {
+      const sk = KO_PREFIX[r] + (i + 1);
+      const pick = (pred.picks || {})[sk] || "";
+      const status = (pred.status || {})[sk] || "pending";
+      const scored = (pred.slotPoints || {})[sk] || 0;
+      const potential = (pot[pick] && pot[pick][roundKey[r]]) || 0;
+
+      const cell = document.createElement("div");
+      cell.className = "ko-cell ko-pick " + status + (r === 4 ? " champion" : "");
+      let badge = "";
+      if (status === "correct") badge = `<span class="ko-pts good">+${scored}</span>`;
+      else if (status === "wrong") badge = `<span class="ko-pts bad">+0</span>`;
+      else if (pick) badge = `<span class="ko-pts">+${potential}</span>`; // pending: what's at stake
+      cell.innerHTML = `<span class="ko-team">${pick ? teamLabel(pick) : "—"}</span>${badge}`;
+      col.appendChild(cell);
+    }
+    bracket.appendChild(col);
+  }
+
+  const correct = Object.keys(pred.status || {}).filter(s => pred.status[s] === "correct").length;
+  card.innerHTML = `<h3>${esc(pred.name)} <span class="ko-total">${pred.total} pts · ${correct} correct</span></h3>`;
+  card.appendChild(bracket);
+  return card;
+}
 
 function renderGroups() {
   const grid = document.getElementById("groupsGrid");
@@ -388,11 +539,23 @@ function buildPickCard(entry, actualLookup) {
 
 function applyData(payload, isLive) {
   state.leaderboardRows = payload.leaderboardRows || payload.rows || [];
-  state.knockoutRows    = payload.knockoutRows    || [];
   state.actualGroups    = payload.actualGroups    || [];
   state.picksRows       = payload.picksRows       || [];
   state.updatedAt       = payload.updatedAt || payload.generatedAt || new Date().toISOString();
   state.isLive          = !!isLive;
+
+  // Knockout block (from getKnockoutBlock in knockout.gs)
+  state.knockout = payload.knockout || null;
+  const koScores = (state.knockout && state.knockout.scores) || [];
+  state.knockoutRows = koScores.length
+    ? koScores.map(s => ({
+        "Leaderboard Name": s.name,
+        "Score": s.total,
+        "Correct": s.correct,
+        "Final": s.Final, "Semi": s.SF, "Quarter": s.QF,
+        "Round of 16": s.R16, "Round of 32": s.R32
+      }))
+    : (payload.knockoutRows || []);
 
   if (typeof payload.picksPublic === "boolean") {
     state.picksPublic = payload.picksPublic;
@@ -415,6 +578,7 @@ function applyData(payload, isLive) {
 
   renderGroupLeaderboard();
   renderKnockoutLeaderboard();
+  renderKnockoutBracketTab();
   renderGroups();
   renderSummary();
   renderPicks();
@@ -511,11 +675,21 @@ function initPicksControls() {
   });
 }
 
+function initKnockoutControls() {
+  const select = document.getElementById("koSelect");
+  if (!select) return;
+  select.addEventListener("change", () => {
+    state.selectedKO = select.value;
+    renderKnockoutBracketTab();
+  });
+}
+
 function init() {
   document.title = "World Cup 2026 Pool";
   initTabs();
   initEntryLink();
   initPicksControls();
+  initKnockoutControls();
   refreshLiveData();
   setInterval(refreshLiveData, 60_000);
 }
