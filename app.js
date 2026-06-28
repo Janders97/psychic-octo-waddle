@@ -1,6 +1,6 @@
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 
-const WEB_APP_URL    = "https://script.google.com/macros/s/AKfycbxGsLGRoWRvfAng4Hz7KESe4Gj7uIbnpg4XSwF4xf-IErJE4uATDmigNSbUoPmK-9ZU/exec";
+const WEB_APP_URL    = "https://script.google.com/macros/s/AKfycbxmDT87N1MM6-uARB9o0lBG1zhnxJeqmPogDRTH9E8FLDoq3WPFO4Jml4AO8HCehPLQ/exec";
 const ENTRY_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe6zAHK_tEozTJuD1ALQwpPjXFdB1jwwhkRT49sfI8YPoiqTw/viewform";
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
