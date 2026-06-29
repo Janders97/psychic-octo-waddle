@@ -1,6 +1,6 @@
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 
-const WEB_APP_URL    = "https://script.google.com/macros/s/AKfycbw0M-T32f-Ok6LAnlhnbWzr8Catjj-HJJo77YLYnMx4oDJfD5pJRdiC6TsqNahceHj3/exec";
+const WEB_APP_URL    = "https://script.google.com/macros/s/AKfycbxGsLGRoWRvfAng4Hz7KESe4Gj7uIbnpg4XSwF4xf-IErJE4uATDmigNSbUoPmK-9ZU/exec";
 const ENTRY_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe6zAHK_tEozTJuD1ALQwpPjXFdB1jwwhkRT49sfI8YPoiqTw/viewform";
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
@@ -188,7 +188,8 @@ function renderKnockoutLeaderboard() {
       `<td>${idx + 1}</td>` +
       `<td>${esc(row["Leaderboard Name"] || row["Name"] || "")}</td>` +
       `<td>${normalizeScore(row)}</td>` +
-      `<td>${row["Possible"] != null ? row["Possible"] : "-"}</td>` +
+      `<td>${row["Possible"] != null ? row["Possible"] : "-"}` +
+        `${row["Perfect"] != null ? `<sub class="perfect-max" title="Perfect-bracket maximum">${row["Perfect"]}</sub>` : ""}</td>` +
       `<td>${num(row, "Final")}</td>` +
       `<td>${num(row, "Semi", "Semis")}</td>` +
       `<td>${num(row, "Quarter", "Quarterfinal")}</td>` +
@@ -622,6 +623,7 @@ function applyData(payload, isLive) {
         "Leaderboard Name": s.name,
         "Score": s.total,
         "Possible": s.possible,
+        "Perfect": s.perfect,
         "Correct": s.correct,
         "Final": s.Final, "Semi": s.SF, "Quarter": s.QF,
         "Round of 16": s.R16, "Round of 32": s.R32

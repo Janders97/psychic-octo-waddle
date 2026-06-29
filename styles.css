@@ -591,3 +591,12 @@ th,
   border-color: rgba(103, 211, 255, 0.45);
   background: rgba(103, 211, 255, 0.10);
 }
+
+/* Perfect-bracket maximum: small italic subscript beside Pts Possible */
+.perfect-max {
+  font-style: italic;
+  font-size: 0.72em;
+  color: var(--muted);
+  margin-left: 2px;
+  font-variant-numeric: tabular-nums;
+}
