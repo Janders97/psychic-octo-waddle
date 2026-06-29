@@ -1,6 +1,6 @@
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 
-const WEB_APP_URL    = "https://script.google.com/macros/s/AKfycbw0M-T32f-Ok6LAnlhnbWzr8Catjj-HJJo77YLYnMx4oDJfD5pJRdiC6TsqNahceHj3/exec";
+const WEB_APP_URL    = "https://script.google.com/macros/s/AKfycbxGsLGRoWRvfAng4Hz7KESe4Gj7uIbnpg4XSwF4xf-IErJE4uATDmigNSbUoPmK-9ZU/exec";
 const ENTRY_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe6zAHK_tEozTJuD1ALQwpPjXFdB1jwwhkRT49sfI8YPoiqTw/viewform";
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
@@ -264,7 +264,10 @@ function renderKnockoutBracketTab() {
   const names = preds.map(p => p.name);
   if (select) {
     select.style.display = "";
-    if (!state.selectedKO || names.indexOf(state.selectedKO) === -1) state.selectedKO = names[0];
+    if (!state.selectedKO ||
+        (state.selectedKO !== "__all__" && names.indexOf(state.selectedKO) === -1)) {
+      state.selectedKO = names[0];
+    }
     const key = names.join("|");
     if (select.dataset.names !== key) {
       select.innerHTML = '<option value="__all__">All participants</option>' +
@@ -278,8 +281,15 @@ function renderKnockoutBracketTab() {
     : preds.filter(p => p.name === state.selectedKO);
 
   wrap.innerHTML = "";
-  wrap.appendChild(buildActualBracketCard(k));      // master "what actually happened" bracket
-  shown.forEach(p => wrap.appendChild(buildBracketCard(p, k)));
+  if (state.selectedKO === "__all__") {
+    // Overview: actual results as a reference at the top, then everyone's brackets
+    wrap.appendChild(buildActualBracketCard(k));
+    shown.forEach(p => wrap.appendChild(buildBracketCard(p, k)));
+  } else {
+    // Single participant: their bracket on top, actual results below to compare against
+    shown.forEach(p => wrap.appendChild(buildBracketCard(p, k)));
+    wrap.appendChild(buildActualBracketCard(k));
+  }
 }
 
 // The real bracket as it unfolds — actual winners from results, no grading colours.
